@@ -135,7 +135,7 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
     </div>
     <div class="row" data-for="gemini">
       <label for="apiKey" class="lbl">מפתח</label>
-      <input type="password" class="field" id="apiKey" placeholder="AIza…" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <input type="password" class="field" id="apiKey" placeholder="הדבק כאן את המפתח" autocomplete="off" autocapitalize="off" spellcheck="false">
       <button type="button" class="text-btn" id="checkKey">בדיקה</button>
     </div>
     <div class="row col" data-for="gemini">
@@ -338,7 +338,7 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
     return s;
   }
   async function listModels(){
-    var r = await fetchT(GEM + '/models?pageSize=200&key=' + encodeURIComponent(state.key));
+    var r = await fetchT(GEM + '/models?pageSize=200', { headers:{ 'x-goog-api-key':state.key } });
     var j = {}; try { j = await r.json(); } catch(e){}
     if (!r.ok) throw new Error(gemErr(j, r));
     var names = (j.models || []).filter(function(m){ return (m.supportedGenerationMethods || []).indexOf('generateContent') >= 0; })
@@ -358,8 +358,8 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
 
   async function gemRead(b64){
     var body = { contents:[{ parts:[ { text:READ_PROMPT }, { inline_data:{ mime_type:'image/jpeg', data:b64 } } ] }], generationConfig:{ temperature:0 } };
-    var r = await fetchT(GEM + '/models/' + encodeURIComponent(state.readModel) + ':generateContent?key=' + encodeURIComponent(state.key), {
-      method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify(body)
+    var r = await fetchT(GEM + '/models/' + encodeURIComponent(state.readModel) + ':generateContent', {
+      method:'POST', headers:{ 'Content-Type':'application/json', 'x-goog-api-key':state.key }, body:JSON.stringify(body)
     });
     var j = {}; try { j = await r.json(); } catch(e){}
     if (!r.ok){ var err = new Error(gemErr(j, r)); err.status = r.status; throw err; }
@@ -384,8 +384,8 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
   async function gemImage(term){
     var prompt = STYLE_PROMPTS[state.style].replace('{X}', term);
     var body = { contents:[{ parts:[{ text:prompt }] }], generationConfig:{ responseModalities:['TEXT','IMAGE'] } };
-    var r = await fetchT(GEM + '/models/' + encodeURIComponent(state.imageModel) + ':generateContent?key=' + encodeURIComponent(state.key), {
-      method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify(body)
+    var r = await fetchT(GEM + '/models/' + encodeURIComponent(state.imageModel) + ':generateContent', {
+      method:'POST', headers:{ 'Content-Type':'application/json', 'x-goog-api-key':state.key }, body:JSON.stringify(body)
     }, 90000);
     var j = {}; try { j = await r.json(); } catch(e){}
     if (!r.ok) throw new Error(gemErr(j, r));
@@ -751,7 +751,7 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
     var tests = [
       ['שירות השליחה למסך התצוגה', function(){ return fetchT(NTFY + TOPIC + '/json?poll=1&since=latest', {}, 10000); }],
       ['ויקיפדיה', function(){ return fetchT('https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&meta=siteinfo', {}, 10000); }],
-      ['Gemini', function(){ return state.key ? fetchT(GEM + '/models?pageSize=1&key=' + encodeURIComponent(state.key), {}, 10000) : null; }]
+      ['Gemini', function(){ return state.key ? fetchT(GEM + '/models?pageSize=1', { headers:{ 'x-goog-api-key':state.key } }, 10000) : null; }]
     ];
     for (var i = 0; i < tests.length; i++){
       var name = tests[i][0];

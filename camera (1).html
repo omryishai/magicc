@@ -1,0 +1,778 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="מצלמה">
+<meta name="theme-color" content="#ffffff">
+<meta name="format-detection" content="telephone=no">
+<link rel="apple-touch-icon" href="data:image/png;base64,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">
+<link rel="icon" type="image/png" href="data:image/png;base64,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">
+<title>מצלמה</title>
+<style>
+/* Layout: an iOS-style settings list, and a full-screen camera that looks like video recording. Light setup, black camera. */
+:root{
+  --bg:#ffffff; --ink:#1c1c1e; --muted:#8a8a8e; --sep:#e3e3e8; --fill:#f2f2f7; --seg:#e6e6eb;
+  --tint:#007aff; --danger:#ff3b30; --ok:#34c759; --warn:#ff9500; --shadow:rgba(0,0,0,.10);
+  --cam-bg:#000000; --cam-ink:#ffffff; --cam-red:#ff3b30; --cam-yellow:#ffd60a; --cam-gray:#5a5a5e;
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Noto Sans Hebrew",Arial,sans-serif;
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+html{ background:var(--fill); }
+body{
+  margin:0; background:var(--fill); color:var(--ink); font-family:var(--font); font-size:16px; line-height:1.4;
+  padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px));
+  -webkit-text-size-adjust:100%; -webkit-tap-highlight-color:transparent;
+}
+[hidden]{ display:none !important; }
+button, select, input{ font:inherit; color:inherit; }
+button:focus-visible, input:focus-visible, select:focus-visible{ outline:2px solid var(--tint); outline-offset:2px; }
+html.cam-on, html.cam-on body{ overflow:hidden; height:100%; background:var(--cam-bg); }
+
+.app{ max-width:520px; margin:0 auto; padding-block:0 32px; }
+.navbar{ position:sticky; top:env(safe-area-inset-top,0px); z-index:5; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; height:52px; background:var(--fill); }
+.nav-title{ margin:0; font-size:17px; font-weight:600; text-align:center; }
+.nav-btn{ background:none; border:0; color:var(--tint); font-size:17px; font-weight:600; padding:8px 2px; cursor:pointer; justify-self:end; grid-column:3; }
+
+.engine{ margin:4px 0 0; display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); padding-inline:4px; }
+.engine i{ width:8px; height:8px; border-radius:50%; background:var(--muted); flex:none; }
+.engine.ready i{ background:var(--ok); }
+.engine.warn i{ background:var(--warn); }
+.engine.error i{ background:var(--danger); }
+.engine.error{ color:var(--danger); }
+
+.group-title{ margin:22px 16px 6px; font-size:13px; color:var(--muted); }
+.group{ background:var(--bg); border-radius:12px; overflow:hidden; }
+.group-foot{ margin:6px 16px 0; font-size:13px; color:var(--muted); line-height:1.5; }
+.row{ display:flex; align-items:center; justify-content:space-between; gap:14px; padding:11px 16px; min-height:24px; }
+.row + .row{ border-top:1px solid var(--sep); }
+.row.col{ flex-direction:column; align-items:stretch; gap:8px; }
+.row label, .row .lbl{ flex:none; }
+.field{ flex:1; min-width:0; border:0; background:transparent; padding:6px 0; outline:none; font-size:16px; text-align:left; direction:ltr; }
+.field.rtl{ direction:rtl; text-align:right; }
+.field::placeholder{ color:var(--muted); }
+select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); cursor:pointer; text-overflow:ellipsis; }
+.text-btn{ flex:none; background:none; border:0; color:var(--tint); font-size:15px; cursor:pointer; padding:6px 0; }
+.text-btn.danger{ color:var(--danger); }
+.text-btn:disabled{ color:var(--muted); cursor:default; }
+.val{ color:var(--muted); font-size:14px; }
+
+.seg{ display:grid; grid-auto-flow:column; grid-auto-columns:1fr; gap:2px; padding:2px; border-radius:9px; background:var(--seg); }
+.seg-opt{ position:relative; display:block; cursor:pointer; }
+.seg-opt input{ position:absolute; inset:0; opacity:0; margin:0; cursor:pointer; }
+.seg-opt span{ display:flex; align-items:center; justify-content:center; text-align:center; min-height:32px; padding:2px 4px; border-radius:7px; font-size:14px; font-weight:500; }
+.seg-opt input:checked + span{ background:var(--bg); box-shadow:0 1px 3px var(--shadow); }
+.seg-opt input:focus-visible + span{ outline:2px solid var(--tint); outline-offset:1px; }
+.ios-switch{ appearance:none; -webkit-appearance:none; flex:none; margin:0; position:relative; width:51px; height:31px; border-radius:99px; background:var(--seg); cursor:pointer; transition:background-color .2s ease; }
+.ios-switch::after{ content:""; position:absolute; top:2px; inset-inline-start:2px; width:27px; height:27px; border-radius:50%; background:var(--bg); box-shadow:0 2px 4px var(--shadow); transition:transform .2s ease; }
+.ios-switch:checked{ background:var(--ok); }
+.ios-switch:checked::after{ transform:translateX(-20px); }
+
+.test-out{ display:flex; align-items:center; gap:12px; }
+.test-out img{ width:72px; height:72px; border-radius:10px; object-fit:cover; background:var(--fill); flex:none; }
+.test-msg{ font-size:14px; color:var(--muted); line-height:1.45; min-width:0; }
+.link-line{ display:flex; align-items:center; gap:10px; }
+.link-text{ flex:1; min-width:0; font-size:15px; direction:ltr; text-align:left; overflow-wrap:anywhere; user-select:all; -webkit-user-select:all; }
+.secret dt{ font-weight:600; font-size:15px; }
+.secret dd{ margin:2px 0 0; color:var(--muted); font-size:14px; line-height:1.45; }
+.secret{ margin:0; }
+.status{ margin:14px 4px 0; font-size:13px; color:var(--muted); min-height:1.4em; }
+
+.alert{ margin:10px 0 0; padding:12px 14px; border-radius:12px; background:#fff1f0; color:#b3261e; font-size:14px; line-height:1.5; }
+.checks{ list-style:none; margin:0; padding:0; font-size:14px; line-height:1.6; }
+.checks .ok{ color:#248a3d; }
+.checks .bad{ color:var(--danger); }
+.checks .skip{ color:var(--muted); }
+
+/* Camera */
+#cam{ position:fixed; inset:0; z-index:100; background:var(--cam-bg); color:var(--cam-ink); overflow:hidden; touch-action:manipulation; -webkit-user-select:none; user-select:none; }
+#video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; background:var(--cam-bg); }
+#video.mirror{ transform:scaleX(-1); }
+.cam-msg{ position:absolute; left:24px; right:24px; top:40%; text-align:center; font-size:15px; line-height:1.5; color:var(--cam-ink); }
+.scan-frame{ position:absolute; left:7%; right:7%; top:25%; bottom:25%; border:2px dashed var(--cam-yellow); border-radius:14px; pointer-events:none; }
+.cam-top{ position:absolute; left:0; right:0; top:0; padding-top:calc(env(safe-area-inset-top,0px) + 12px); display:flex; justify-content:center; pointer-events:none; }
+.timer{ display:flex; align-items:center; gap:6px; padding:3px 9px; border-radius:6px; font:500 17px/1.2 var(--font); font-variant-numeric:tabular-nums; direction:ltr; color:var(--cam-ink); background:transparent; transition:background-color .2s ease; }
+.timer.rec{ background:var(--cam-red); }
+.timer.fail .cue{ display:block; border:0; background:var(--cam-yellow); }
+.cue{ width:6px; height:6px; border-radius:50%; box-sizing:border-box; display:none; }
+.timer.read .cue{ display:block; border:1.5px solid var(--cam-ink); background:transparent; }
+.timer.hit .cue{ display:block; border:0; background:var(--cam-ink); }
+.practice-text{ position:absolute; left:16px; right:16px; bottom:calc(env(safe-area-inset-bottom,0px) + 190px); padding:8px 10px; border-radius:10px; background:rgba(0,0,0,.55); font:13px/1.4 ui-monospace,Menlo,monospace; direction:ltr; text-align:left; white-space:pre-wrap; overflow-wrap:anywhere; }
+.cam-bottom{ position:absolute; left:0; right:0; bottom:0; padding:14px 0 calc(env(safe-area-inset-bottom,0px) + 22px); background:linear-gradient(to top, rgba(0,0,0,.72), rgba(0,0,0,.45) 70%, rgba(0,0,0,0)); display:flex; flex-direction:column; gap:18px; }
+.modes{ display:flex; justify-content:center; gap:22px; font-size:13px; font-weight:600; letter-spacing:.02em; color:rgba(255,255,255,.85); }
+.modes .on{ color:var(--cam-yellow); }
+.controls{ display:grid; grid-template-columns:1fr auto 1fr; align-items:center; direction:ltr; padding-inline:36px; }
+.thumb-btn{ justify-self:start; width:46px; height:46px; border-radius:9px; border:2px solid rgba(255,255,255,.85); background:#2c2c2e center / cover no-repeat; cursor:pointer; padding:0; }
+.flip{ justify-self:end; width:46px; height:46px; border-radius:50%; border:0; background:rgba(255,255,255,.18); color:var(--cam-ink); display:grid; place-items:center; cursor:pointer; }
+.flip svg{ width:24px; height:24px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.rec{ width:76px; height:76px; border-radius:50%; border:4px solid var(--cam-ink); background:transparent; padding:0; display:grid; place-items:center; cursor:pointer; }
+.rec span{ display:block; width:60px; height:60px; border-radius:50%; background:var(--cam-red); transition:all .2s ease; }
+.rec.on span{ width:30px; height:30px; border-radius:7px; }
+@media (prefers-reduced-motion: reduce){ *{ transition-duration:.01ms !important; } }
+</style>
+</head>
+<body>
+<div class="app" id="setup">
+  <header class="navbar">
+    <span></span>
+    <h1 class="nav-title">מצלמה</h1>
+    <button type="button" class="nav-btn" id="openCam">פתח מצלמה</button>
+  </header>
+  <p class="engine" id="engine"><i></i><span id="engineText">בודק הגדרות…</span></p>
+  <p class="alert" id="cspAlert" hidden></p>
+
+  <p class="group-title">קריאת הפתק</p>
+  <div class="group">
+    <div class="row col">
+      <div class="seg" role="radiogroup" aria-label="מנוע הקריאה">
+        <label class="seg-opt"><input type="radio" name="reader" value="gemini" id="reader-gemini"><span>Gemini AI</span></label>
+        <label class="seg-opt"><input type="radio" name="reader" value="local" id="reader-local"><span>מקומי, בלי מפתח</span></label>
+      </div>
+    </div>
+    <div class="row" data-for="gemini">
+      <label for="apiKey" class="lbl">מפתח</label>
+      <input type="password" class="field" id="apiKey" placeholder="AIza…" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button type="button" class="text-btn" id="checkKey">בדיקה</button>
+    </div>
+    <div class="row col" data-for="gemini">
+      <span class="lbl">קצב בדיקה</span>
+      <div class="seg" role="radiogroup" aria-label="קצב בדיקה">
+        <label class="seg-opt"><input type="radio" name="rate" value="free" id="rate-free"><span>חשבון חינמי · כל 4 שניות</span></label>
+        <label class="seg-opt"><input type="radio" name="rate" value="paid" id="rate-paid"><span>בתשלום · כל 1.5 שניות</span></label>
+      </div>
+    </div>
+    <div class="row" data-for="gemini">
+      <label for="readModel" class="lbl">מודל קריאה</label>
+      <select class="field" id="readModel"></select>
+    </div>
+  </div>
+  <p class="group-foot" id="readerFoot"></p>
+
+  <p class="group-title">התמונה</p>
+  <div class="group">
+    <div class="row col">
+      <div class="seg" role="radiogroup" aria-label="מקור התמונה">
+        <label class="seg-opt"><input type="radio" name="source" value="wiki" id="source-wiki"><span>צילום מוויקיפדיה · חינם</span></label>
+        <label class="seg-opt"><input type="radio" name="source" value="ai" id="source-ai"><span>תמונת AI · בתשלום</span></label>
+      </div>
+    </div>
+    <div class="row col" data-for="ai">
+      <span class="lbl">סגנון</span>
+      <div class="seg" role="radiogroup" aria-label="סגנון התמונה">
+        <label class="seg-opt"><input type="radio" name="style" value="photo" id="style-photo"><span>צילום</span></label>
+        <label class="seg-opt"><input type="radio" name="style" value="sketch" id="style-sketch"><span>ציור בעט</span></label>
+        <label class="seg-opt"><input type="radio" name="style" value="illus" id="style-illus"><span>איור צבעוני</span></label>
+      </div>
+    </div>
+    <div class="row" data-for="ai">
+      <label for="imageModel" class="lbl">מודל תמונה</label>
+      <select class="field" id="imageModel"></select>
+    </div>
+  </div>
+  <p class="group-foot" id="sourceFoot"></p>
+
+  <p class="group-title">בדיקה בלי מצלמה</p>
+  <div class="group">
+    <div class="row">
+      <label for="testWord" class="lbl">מילה</label>
+      <input type="text" class="field rtl" id="testWord" placeholder="למשל APPLE או תפוח" dir="auto" autocomplete="off" spellcheck="false">
+      <button type="button" class="text-btn" id="testSend">צור ושלח</button>
+    </div>
+    <div class="row" id="testRow" hidden>
+      <div class="test-out"><img id="testImg" alt="" hidden><span class="test-msg" id="testMsg"></span></div>
+    </div>
+  </div>
+  <p class="group-foot">יוצר את התמונה ושולח אותה למסך התצוגה, בדיוק כמו בהופעה. טוב לבדיקה, וגם כגיבוי.</p>
+
+  <p class="group-title">מסך התצוגה</p>
+  <div class="group">
+    <div class="row col">
+      <div class="link-line"><span class="link-text" id="showLink"></span><button type="button" class="text-btn" id="copyLink">העתק</button></div>
+    </div>
+    <div class="row"><button type="button" class="text-btn danger" id="clearShow">ניקוי מסך התצוגה</button><span class="val" id="clearState"></span></div>
+  </div>
+  <p class="group-foot">בכתובת הזאת מופיעה רק התמונה האחרונה שנשלחה, על רקע לבן.</p>
+
+  <p class="group-title">בדיקת חיבורים</p>
+  <div class="group">
+    <div class="row"><button type="button" class="text-btn" id="netCheck">בדוק עכשיו</button></div>
+    <div class="row col" id="netRow" hidden><ul class="checks" id="netResults"></ul></div>
+  </div>
+  <p class="group-foot">בודק שהדף מצליח להגיע לשירות השליחה, לוויקיפדיה ול־Gemini. אם משהו מסומן באדום, הסריקה או השליחה לא יעבדו.</p>
+
+  <p class="group-title">תרגול</p>
+  <div class="group">
+    <label class="row" for="practice"><span>מצב תרגול</span><input type="checkbox" class="ios-switch" id="practice"></label>
+  </div>
+  <p class="group-foot">במצב תרגול רואים במצלמה את אזור הסריקה, מה שהמנוע קרא, ומה קורה עם התמונה. כבה לפני הופעה.</p>
+
+  <p class="group-title">איך זה עובד בהופעה</p>
+  <div class="group">
+    <dl class="secret">
+      <div class="row col"><dt>לחיצה על כפתור ההקלטה</dt><dd>הטיימר מתחיל, מסך התצוגה מתנקה, והמצלמה מחפשת פתק במרכז התמונה.</dd></div>
+      <div class="row col"><dt>המילה זוהתה</dt><dd>ההקלטה נעצרת לבד, כמו כשעוצרים וידאו, ופריים מהצילום מופיע בריבוע השמאלי למטה.</dd></div>
+      <div class="row col"><dt>הסימן ליד הטיימר</dt><dd>עיגול ריק: התמונה בהכנה. נקודה לבנה מלאה: התמונה כבר במסך התצוגה. נקודה צהובה: משהו נכשל. הפעל מצב תרגול כדי לראות מה.</dd></div>
+      <div class="row col"><dt>הריבוע השמאלי למטה</dt><dd>חזרה למסך הזה.</dd></div>
+    </dl>
+  </div>
+  <p class="status" id="status" aria-live="polite"></p>
+</div>
+
+<div id="cam" hidden>
+  <video id="video" playsinline muted autoplay></video>
+  <p class="cam-msg" id="camMsg" hidden></p>
+  <div class="scan-frame" id="scanFrame" hidden></div>
+  <div class="cam-top"><div class="timer" id="timer"><i class="cue"></i><span id="timerText">00:00:00</span></div></div>
+  <div class="practice-text" id="practiceText" hidden></div>
+  <div class="cam-bottom">
+    <div class="modes" id="modes"><span>סלו־מו</span><span class="on">וידאו</span><span>תמונה</span></div>
+    <div class="controls">
+      <button type="button" class="thumb-btn" id="exitCam" aria-label="חזרה להגדרות"></button>
+      <button type="button" class="rec" id="recBtn" aria-label="התחלת הקלטה"><span></span></button>
+      <button type="button" class="flip" id="flipBtn" aria-label="החלפת מצלמה">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 3.5V8h4.5"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 20.5V16h-4.5"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var $ = function(s){ return document.querySelector(s); };
+  var TOPIC = 'ncxfo6agxwov0ymi9qh0acn9';
+  var NTFY = 'https://ntfy.sh/';
+  var GEM = 'https://generativelanguage.googleapis.com/v1beta';
+  var TESS_URL = 'https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';
+  var KEY = 'note-cam-ai-v1';
+
+  /* ---------- State ---------- */
+  var storageOK = true;
+  function load(){
+    var s = null;
+    try { var raw = localStorage.getItem(KEY); if (raw) s = JSON.parse(raw); } catch(e){ storageOK = false; }
+    s = (s && typeof s === 'object') ? s : {};
+    return {
+      reader: s.reader === 'local' ? 'local' : 'gemini',
+      key: typeof s.key === 'string' ? s.key : '',
+      rate: s.rate === 'paid' ? 'paid' : 'free',
+      readModel: typeof s.readModel === 'string' ? s.readModel : '',
+      imageModel: typeof s.imageModel === 'string' ? s.imageModel : '',
+      readModels: Array.isArray(s.readModels) ? s.readModels.filter(function(x){ return typeof x === 'string'; }) : [],
+      imageModels: Array.isArray(s.imageModels) ? s.imageModels.filter(function(x){ return typeof x === 'string'; }) : [],
+      source: s.source === 'ai' ? 'ai' : 'wiki',
+      style: ['photo','sketch','illus'].indexOf(s.style) >= 0 ? s.style : 'photo',
+      practice: s.practice === true
+    };
+  }
+  var state = load();
+  var statusEl = $('#status');
+  function setStatus(t){ statusEl.textContent = t || ''; }
+  function save(){
+    try { localStorage.setItem(KEY, JSON.stringify(state)); }
+    catch(e){ setStatus('לא הצלחתי לשמור במכשיר. ההגדרות יישמרו רק עד שתסגור את הדף.'); }
+  }
+  if (!storageOK) setStatus('אין אפשרות לשמור במכשיר הזה. ההגדרות יישמרו רק עד שתסגור את הדף.');
+  function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+  function hasHebrew(s){ return /[֐-׿]/.test(s); }
+  function fetchT(url, opts, ms){
+    opts = opts || {};
+    var ctl = window.AbortController ? new AbortController() : null;
+    if (ctl) opts.signal = ctl.signal;
+    var t = setTimeout(function(){ if (ctl) ctl.abort(); }, ms || 20000);
+    return fetch(url, opts).finally(function(){ clearTimeout(t); });
+  }
+  function withTimeout(p, ms, msg){ return Promise.race([p, new Promise(function(_, rej){ setTimeout(function(){ rej(new Error(msg)); }, ms); })]); }
+  var cspBlocked = false;
+  document.addEventListener('securitypolicyviolation', function(e){
+    if (cspBlocked) return;
+    cspBlocked = true;
+    var a = document.getElementById('cspAlert');
+    a.textContent = 'האתר שמארח את הדף הזה חוסם חיבורים לשירותים חיצוניים (נחסם: ' + (e.blockedURI || 'חיבור חיצוני') + '). בגלל זה הסריקה והשליחה לא עובדות. צריך להעלות את camera.html ו־show.html לאתר שלא חוסם, כמו GitHub Pages.';
+    a.hidden = false;
+  });
+
+  /* ---------- Relay to the display page ---------- */
+  async function publishBlob(blob){
+    for (var attempt = 0; attempt < 3; attempt++){
+      try { var r = await fetchT(NTFY + TOPIC, { method:'PUT', body:blob, headers:{ 'Filename':'image.jpg' } }); if (r.ok) return true; } catch(e){}
+      try { var r2 = await fetchT(NTFY + TOPIC + '?filename=image.jpg', { method:'POST', body:await blob.arrayBuffer() }); if (r2.ok) return true; } catch(e){}
+      await sleep(500 * (attempt + 1));
+    }
+    return false;
+  }
+  async function publishURL(url){
+    for (var attempt = 0; attempt < 3; attempt++){
+      try { var r = await fetchT(NTFY + TOPIC + '?attach=' + encodeURIComponent(url), { method:'POST', body:'image' }); if (r.ok) return true; } catch(e){}
+      await sleep(500 * (attempt + 1));
+    }
+    return false;
+  }
+  async function sendClear(){
+    for (var attempt = 0; attempt < 2; attempt++){
+      try { var r = await fetchT(NTFY + TOPIC, { method:'POST', body:'clear' }); if (r.ok) return true; } catch(e){}
+      await sleep(400);
+    }
+    return false;
+  }
+
+  /* ---------- Gemini ---------- */
+  function gemErr(j, r){ return (j && j.error && j.error.message) ? j.error.message : ('HTTP ' + (r ? r.status : '?')); }
+  function verOf(n){ var m = /gemini-(\d+(?:\.\d+)?)/.exec(n); return m ? parseFloat(m[1]) : 0; }
+  function rankRead(n){
+    var s = verOf(n) * 10;
+    if (/flash-lite/.test(n)) s += 6; else if (/flash/.test(n)) s += 3;
+    if (/pro/.test(n)) s -= 8;
+    if (/preview|exp/.test(n)) s -= 4;
+    if (/latest/.test(n)) s -= 1;
+    return s;
+  }
+  function rankImage(n){
+    var s = verOf(n) * 10;
+    if (/lite/.test(n)) s += 6; else if (/flash/.test(n)) s += 3;
+    if (/preview|exp/.test(n)) s -= 2;
+    return s;
+  }
+  async function listModels(){
+    var r = await fetchT(GEM + '/models?pageSize=200&key=' + encodeURIComponent(state.key));
+    var j = {}; try { j = await r.json(); } catch(e){}
+    if (!r.ok) throw new Error(gemErr(j, r));
+    var names = (j.models || []).filter(function(m){ return (m.supportedGenerationMethods || []).indexOf('generateContent') >= 0; })
+      .map(function(m){ return String(m.name || '').replace(/^models\//, ''); }).filter(function(n){ return /^gemini/.test(n); });
+    var read = names.filter(function(n){ return !/image|banana|tts|audio|live|embed|robotics|computer|native|learnlm|aqa|thinking/.test(n); })
+      .sort(function(a, b){ return rankRead(b) - rankRead(a); });
+    var img = names.filter(function(n){ return /image|banana/.test(n) && !/tts|audio/.test(n); })
+      .sort(function(a, b){ return rankImage(b) - rankImage(a); });
+    return { read:read, img:img };
+  }
+  function partsOf(j){ return (j && j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts) || []; }
+
+  var READ_PROMPT = 'This is a frame from a phone camera. Someone may be holding up a paper note near the middle of the frame with a handwritten or printed word on it. ' +
+    'If you can clearly read a word or short phrase on that note, reply in exactly this format: WORD || ENGLISH ' +
+    'where WORD is exactly what is written (any language, including Hebrew) and ENGLISH is the concrete English noun or short noun phrase it most likely refers to, correcting obvious misspellings. ' +
+    'Ignore any other text in the background. If there is no clearly readable note, reply exactly: NONE';
+
+  async function gemRead(b64){
+    var body = { contents:[{ parts:[ { text:READ_PROMPT }, { inline_data:{ mime_type:'image/jpeg', data:b64 } } ] }], generationConfig:{ temperature:0 } };
+    var r = await fetchT(GEM + '/models/' + encodeURIComponent(state.readModel) + ':generateContent?key=' + encodeURIComponent(state.key), {
+      method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify(body)
+    });
+    var j = {}; try { j = await r.json(); } catch(e){}
+    if (!r.ok){ var err = new Error(gemErr(j, r)); err.status = r.status; throw err; }
+    var text = partsOf(j).map(function(p){ return p.text || ''; }).join(' ').trim();
+    var line = text.split('\n').map(function(l){ return l.trim(); }).filter(Boolean)[0] || '';
+    if (!line || /^none\b/i.test(line)) return null;
+    var bits = line.split('||');
+    var word = clean(bits[0]), english = clean(bits[1] || bits[0]);
+    if (!word || word.length > 40) return null;
+    return { word:word, english:english || word, raw:text };
+  }
+  function clean(s){
+    return String(s || '').replace(/["'“”‘’`*_]/g, '')
+      .replace(/^[^A-Za-z0-9֐-׿]+/, '').replace(/[^A-Za-z0-9֐-׿)]+$/, '').trim();
+  }
+
+  var STYLE_PROMPTS = {
+    photo: 'A high quality realistic photograph of {X}, centered in the frame, on a plain white background, soft natural light. No text, no letters, no watermark.',
+    sketch:'A simple hand drawn black ink pen sketch of {X} on plain white paper, centered, clean confident lines. No text, no letters.',
+    illus: 'A friendly colorful flat illustration of {X}, centered on a plain white background. No text, no letters.'
+  };
+  async function gemImage(term){
+    var prompt = STYLE_PROMPTS[state.style].replace('{X}', term);
+    var body = { contents:[{ parts:[{ text:prompt }] }], generationConfig:{ responseModalities:['TEXT','IMAGE'] } };
+    var r = await fetchT(GEM + '/models/' + encodeURIComponent(state.imageModel) + ':generateContent?key=' + encodeURIComponent(state.key), {
+      method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify(body)
+    }, 90000);
+    var j = {}; try { j = await r.json(); } catch(e){}
+    if (!r.ok) throw new Error(gemErr(j, r));
+    var part = partsOf(j).filter(function(p){ return p.inlineData || p.inline_data; })[0];
+    if (!part) throw new Error('המודל לא החזיר תמונה');
+    var d = part.inlineData || part.inline_data;
+    return await toJpeg('data:' + (d.mimeType || d.mime_type || 'image/png') + ';base64,' + d.data);
+  }
+  function loadImg(src){ return new Promise(function(res, rej){ var i = new Image(); i.onload = function(){ res(i); }; i.onerror = rej; i.src = src; }); }
+  async function toJpeg(src){
+    var img = await loadImg(src);
+    var max = 1280, w = img.naturalWidth, h = img.naturalHeight, s = Math.min(1, max / Math.max(w, h));
+    var c = document.createElement('canvas'); c.width = Math.round(w * s); c.height = Math.round(h * s);
+    var ctx = c.getContext('2d'); ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, c.width, c.height); ctx.drawImage(img, 0, 0, c.width, c.height);
+    return await new Promise(function(res){ c.toBlob(function(b){ res(b); }, 'image/jpeg', 0.86); });
+  }
+
+  /* ---------- Wikipedia ---------- */
+  async function wikiImage(term){
+    var langs = hasHebrew(term) ? ['he', 'en'] : ['en'];
+    for (var i = 0; i < langs.length; i++){
+      var u = 'https://' + langs[i] + '.wikipedia.org/w/api.php?action=query&format=json&formatversion=2&origin=*' +
+        '&generator=search&gsrnamespace=0&gsrlimit=6&gsrsearch=' + encodeURIComponent(term) +
+        '&prop=pageimages&piprop=thumbnail&pithumbsize=1400';
+      try {
+        var r = await fetchT(u); if (!r.ok) continue;
+        var j = await r.json();
+        var pages = ((j.query && j.query.pages) || []).slice().sort(function(a, b){ return (a.index || 99) - (b.index || 99); });
+        for (var k = 0; k < pages.length; k++){
+          var t = pages[k].thumbnail;
+          if (t && t.source && t.width >= 200 && t.height >= 200) return t.source;
+        }
+      } catch(e){}
+    }
+    return null;
+  }
+
+  /* ---------- Make the image and send it ---------- */
+  async function makeAndSend(word, english, log){
+    var term = english || word;
+    log = log || function(){};
+    if (state.source === 'ai' && state.key && state.imageModel){
+      try {
+        log('מייצר תמונת AI של: ' + term);
+        var blob = await gemImage(term);
+        log('שולח למסך התצוגה…');
+        var ok = await publishBlob(blob);
+        return { ok:ok, via:'ai', preview:URL.createObjectURL(blob), error: ok ? '' : 'השליחה למסך התצוגה נכשלה' };
+      } catch(e){
+        log('תמונת AI נכשלה (' + (e.message || e) + '). עובר לוויקיפדיה.');
+      }
+    }
+    log('מחפש צילום בוויקיפדיה: ' + term);
+    var url = await wikiImage(term);
+    if (!url && word !== term) url = await wikiImage(word);
+    if (!url) return { ok:false, error:'לא נמצאה תמונה עבור "' + term + '"' };
+    log('שולח למסך התצוגה…');
+    var sent = await publishURL(url);
+    return { ok:sent, via:'wiki', preview:url, error: sent ? '' : 'השליחה למסך התצוגה נכשלה' };
+  }
+
+  /* ---------- Settings UI ---------- */
+  var engineEl = $('#engine'), engineText = $('#engineText');
+  function setEngine(kind, text){ engineEl.className = 'engine ' + kind; engineText.textContent = text; }
+  function fillSelect(sel, list, current){
+    sel.textContent = '';
+    var items = list.slice();
+    if (current && items.indexOf(current) < 0) items.unshift(current);
+    if (!items.length){ var o = document.createElement('option'); o.value = ''; o.textContent = 'לחץ "בדיקה" אחרי הזנת מפתח'; sel.appendChild(o); return; }
+    items.forEach(function(n){ var o = document.createElement('option'); o.value = n; o.textContent = n; if (n === current) o.selected = true; sel.appendChild(o); });
+  }
+  function refreshUI(){
+    document.querySelectorAll('[data-for="gemini"]').forEach(function(el){ el.hidden = state.reader !== 'gemini'; });
+    document.querySelectorAll('[data-for="ai"]').forEach(function(el){ el.hidden = state.source !== 'ai'; });
+    fillSelect($('#readModel'), state.readModels, state.readModel);
+    fillSelect($('#imageModel'), state.imageModels, state.imageModel);
+    $('#readerFoot').textContent = state.reader === 'gemini'
+      ? 'Gemini קורא כל מילה, גם בכתב יד ובעברית. צריך מפתח חינמי מ־Google AI Studio. המפתח נשמר רק בטלפון הזה. בחשבון חינמי Google עשויה להשתמש בתמונות לשיפור המוצרים שלה.'
+      : 'המנוע המקומי עובד בלי מפתח ובלי חשבון, אבל קורא טוב רק אותיות דפוס גדולות באנגלית, ובלי תיקון שגיאות.';
+    $('#sourceFoot').textContent = state.source === 'ai'
+      ? 'תמונת AI נוצרת במיוחד לכל מילה, ולוקחת בערך 5 עד 15 שניות. צריך חיוב פעיל בחשבון Google, ועולה כמה סנטים לתמונה. אם היצירה נכשלת, נשלח צילום מוויקיפדיה במקום.'
+      : 'צילום אמיתי מהערך בוויקיפדיה. חינמי ומהיר, בדרך כלל תוך שנייה או שתיים.';
+    if (state.reader === 'local') setEngine('ready', 'קריאה מקומית, בלי מפתח');
+    else if (!state.key) setEngine('warn', 'צריך להזין מפתח Gemini ולבדוק אותו');
+    else if (!state.readModel) setEngine('warn', 'לחץ "בדיקה" כדי לאמת את המפתח');
+    else setEngine('ready', 'מוכן · קורא עם ' + state.readModel);
+  }
+  function bindSeg(name, prop, after){
+    document.querySelectorAll('input[name="' + name + '"]').forEach(function(r){
+      r.checked = r.value === state[prop];
+      r.addEventListener('change', function(){ if (r.checked){ state[prop] = r.value; save(); refreshUI(); if (after) after(); } });
+    });
+  }
+  bindSeg('reader', 'reader');
+  bindSeg('rate', 'rate');
+  bindSeg('source', 'source');
+  bindSeg('style', 'style');
+  var keyIn = $('#apiKey');
+  keyIn.value = state.key;
+  keyIn.addEventListener('change', function(){
+    var v = keyIn.value.trim();
+    if (v !== state.key){ state.key = v; state.readModel = ''; state.imageModel = ''; state.readModels = []; state.imageModels = []; save(); refreshUI(); }
+  });
+  $('#readModel').addEventListener('change', function(e){ state.readModel = e.target.value; save(); refreshUI(); });
+  $('#imageModel').addEventListener('change', function(e){ state.imageModel = e.target.value; save(); refreshUI(); });
+  $('#checkKey').addEventListener('click', async function(){
+    state.key = keyIn.value.trim(); save();
+    if (!state.key){ setEngine('warn', 'צריך להזין מפתח Gemini'); return; }
+    var btn = $('#checkKey'); btn.disabled = true; setEngine('', 'בודק את המפתח…');
+    try {
+      var m = await listModels();
+      state.readModels = m.read; state.imageModels = m.img;
+      if (m.read.indexOf(state.readModel) < 0) state.readModel = m.read[0] || '';
+      if (m.img.indexOf(state.imageModel) < 0) state.imageModel = m.img[0] || '';
+      save(); refreshUI();
+      if (!state.readModel) setEngine('error', 'המפתח עובד, אבל לא נמצא מודל קריאה מתאים.');
+    } catch(e){
+      setEngine('error', 'המפתח לא עבד: ' + (e.message || e));
+    }
+    btn.disabled = false;
+  });
+  var practiceIn = $('#practice'); practiceIn.checked = state.practice;
+  practiceIn.addEventListener('change', function(){ state.practice = practiceIn.checked; save(); });
+
+  var showURL = new URL('show.html', location.href).href;
+  $('#showLink').textContent = showURL;
+  $('#copyLink').addEventListener('click', function(){
+    var btn = $('#copyLink');
+    function done(){ btn.textContent = 'הועתק'; setTimeout(function(){ btn.textContent = 'העתק'; }, 1800); }
+    function fallback(){ var rg = document.createRange(); rg.selectNodeContents($('#showLink')); var s = getSelection(); s.removeAllRanges(); s.addRange(rg); }
+    try { navigator.clipboard.writeText(showURL).then(done, fallback); } catch(e){ fallback(); }
+  });
+  $('#clearShow').addEventListener('click', async function(){
+    var st = $('#clearState'); st.textContent = 'שולח…';
+    var ok = await sendClear();
+    st.textContent = ok ? 'נוקה' : 'נכשל';
+    setTimeout(function(){ st.textContent = ''; }, 2500);
+  });
+
+  var testRow = $('#testRow'), testImg = $('#testImg'), testMsg = $('#testMsg'), lastPreview = null;
+  async function runTest(){
+    var w = $('#testWord').value.trim();
+    if (!w){ $('#testWord').focus(); return; }
+    var btn = $('#testSend'); btn.disabled = true;
+    testRow.hidden = false; testImg.hidden = true;
+    var res = await makeAndSend(w, w, function(t){ testMsg.textContent = t; });
+    if (res.preview){
+      if (lastPreview && lastPreview.indexOf('blob:') === 0) URL.revokeObjectURL(lastPreview);
+      lastPreview = res.preview; testImg.src = res.preview; testImg.hidden = false;
+    }
+    testMsg.textContent = res.ok ? ('נשלח למסך התצוגה' + (res.via === 'ai' ? ' · תמונת AI' : ' · צילום מוויקיפדיה')) : ('לא נשלח: ' + res.error);
+    btn.disabled = false;
+  }
+  $('#testSend').addEventListener('click', runTest);
+  $('#testWord').addEventListener('keydown', function(e){ if (e.key === 'Enter'){ e.preventDefault(); runTest(); } });
+
+  /* ---------- Local reader (Tesseract, loaded only when used) ---------- */
+  var tessWorker = null, tessPromise = null;
+  function loadScript(src){ return new Promise(function(res, rej){ var s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
+  function getTess(){
+    if (tessWorker) return Promise.resolve(tessWorker);
+    if (tessPromise) return tessPromise;
+    tessPromise = withTimeout((async function(){
+      plog('טוען את המנוע המקומי…');
+      if (!window.Tesseract) await loadScript(TESS_URL);
+      var w = await Tesseract.createWorker('eng', 1, {
+        logger:function(m){ if (m && typeof m.progress === 'number' && /load/i.test(m.status || '')) plog('טוען את המנוע המקומי… ' + Math.round(m.progress * 100) + '%'); }
+      });
+      await w.setParameters({ tessedit_pageseg_mode:'11', tessedit_char_whitelist:'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz' });
+      tessWorker = w; return w;
+    })(), 45000, 'המנוע המקומי לא נטען תוך 45 שניות. ייתכן שהאתר חוסם הורדות חיצוניות.');
+    tessPromise.catch(function(){ tessPromise = null; });
+    return tessPromise;
+  }
+
+  /* ---------- Camera ---------- */
+  var cam = $('#cam'), video = $('#video'), camMsg = $('#camMsg'), scanFrame = $('#scanFrame'), practiceText = $('#practiceText');
+  var timerEl = $('#timer'), timerText = $('#timerText'), recBtn = $('#recBtn'), modes = $('#modes');
+  var stream = null, facing = 'environment', recording = false, scanning = false, inflight = false;
+  var recStart = 0, tickT = null, sampleT = null, wake = null, clearPromise = null, session = 0;
+  var prevSmall = null, lastSentSmall = null, stableCount = 0, lastCallAt = 0, backoffUntil = 0, localPrev = null;
+  var work = document.createElement('canvas'), workCtx = work.getContext('2d', { willReadFrequently:true });
+  var tiny = document.createElement('canvas'), tinyCtx = tiny.getContext('2d', { willReadFrequently:true });
+  tiny.width = 64; tiny.height = 36;
+
+  function plog(t){ if (state.practice) practiceText.textContent = t; }
+  async function keepAwake(){ try { if ('wakeLock' in navigator) wake = await navigator.wakeLock.request('screen'); } catch(e){ wake = null; } }
+  function releaseWake(){ try { if (wake) wake.release(); } catch(e){} wake = null; }
+  function stopStream(){ if (stream){ stream.getTracks().forEach(function(t){ t.stop(); }); stream = null; } video.srcObject = null; }
+  async function startStream(){
+    stopStream(); camMsg.hidden = true;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      camMsg.textContent = 'הדפדפן הזה לא מאפשר גישה למצלמה. פתח את הדף בספארי, בכתובת שמתחילה ב־https.'; camMsg.hidden = false; return;
+    }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio:false, video:{ facingMode:{ ideal:facing }, width:{ ideal:1920 }, height:{ ideal:1080 } } });
+      video.srcObject = stream; video.classList.toggle('mirror', facing === 'user');
+      try { await video.play(); } catch(e){}
+    } catch(e){
+      camMsg.textContent = 'אין גישה למצלמה. אשר גישה למצלמה בהגדרות של ספארי ונסה שוב.'; camMsg.hidden = false;
+    }
+  }
+  function fmt(ms){
+    var s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60; s = s % 60;
+    return [h, m, s].map(function(v){ return (v < 10 ? '0' : '') + v; }).join(':');
+  }
+  function tick(){ timerText.textContent = fmt(Date.now() - recStart); }
+
+  async function openCam(){
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    document.documentElement.classList.add('cam-on'); cam.hidden = false;
+    scanFrame.hidden = !state.practice; practiceText.hidden = !state.practice;
+    plog(state.reader === 'gemini' && !(state.key && state.readModel) ? 'אין מפתח Gemini מאומת. חזור להגדרות.' : 'ממתין להקלטה');
+    resetRecUI(); keepAwake();
+    if (state.reader === 'local') getTess().catch(function(){ plog('המנוע המקומי לא נטען. בדוק חיבור לאינטרנט.'); });
+    await startStream();
+  }
+  function closeCam(){ stopRec(); stopStream(); releaseWake(); cam.hidden = true; document.documentElement.classList.remove('cam-on'); }
+  function resetRecUI(keepCue){
+    timerEl.classList.remove('rec');
+    if (!keepCue) timerEl.classList.remove('read', 'hit', 'fail');
+    timerText.textContent = '00:00:00';
+    recBtn.classList.remove('on'); recBtn.setAttribute('aria-label', 'התחלת הקלטה'); modes.hidden = false;
+  }
+  function startRec(){
+    session++;
+    recording = true; scanning = true; inflight = false;
+    prevSmall = null; lastSentSmall = null; stableCount = 0; lastCallAt = 0; localPrev = null;
+    recStart = Date.now(); tick(); clearInterval(tickT); tickT = setInterval(tick, 250);
+    timerEl.classList.remove('read', 'hit', 'fail'); timerEl.classList.add('rec');
+    recBtn.classList.add('on'); recBtn.setAttribute('aria-label', 'עצירת הקלטה'); modes.hidden = true;
+    clearPromise = sendClear();
+    plog('סורק…');
+    if (cspBlocked){ timerEl.classList.add('fail'); plog('האתר חוסם חיבורים חיצוניים. ראה את ההודעה האדומה בהגדרות.'); }
+    else if (state.reader === 'gemini' && !(state.key && state.readModel)){ timerEl.classList.add('fail'); plog('אין מפתח Gemini מאומת. חזור להגדרות, הזן מפתח ולחץ "בדיקה".'); }
+    clearTimeout(sampleT); sampleT = setTimeout(sampleTick, 300);
+  }
+  function stopRec(keepCue){ recording = false; scanning = false; clearInterval(tickT); tickT = null; clearTimeout(sampleT); resetRecUI(keepCue); }
+
+  function cropRect(){
+    var vw = video.videoWidth, vh = video.videoHeight;
+    if (!vw || !vh) return null;
+    var ew = video.clientWidth || vw, eh = video.clientHeight || vh, sc = Math.max(ew / vw, eh / vh);
+    var visW = ew / sc, visH = eh / sc, x0 = (vw - visW) / 2, y0 = (vh - visH) / 2;
+    var cw = visW * 0.86, ch = visH * 0.5;
+    return { x:x0 + (visW - cw) / 2, y:y0 + (visH - ch) / 2, w:cw, h:ch };
+  }
+  function smallGray(r){
+    tinyCtx.drawImage(video, r.x, r.y, r.w, r.h, 0, 0, 64, 36);
+    var d = tinyCtx.getImageData(0, 0, 64, 36).data, out = new Uint8Array(64 * 36);
+    for (var i = 0, k = 0; k < out.length; i += 4, k++) out[k] = (d[i] * 3 + d[i+1] * 6 + d[i+2]) / 10;
+    return out;
+  }
+  function diff(a, b){ if (!a || !b) return 255; var s = 0; for (var i = 0; i < a.length; i++) s += Math.abs(a[i] - b[i]); return s / a.length; }
+  function cropJpegB64(r, maxW){
+    var s = Math.min(1, maxW / r.w);
+    work.width = Math.round(r.w * s); work.height = Math.round(r.h * s);
+    workCtx.drawImage(video, r.x, r.y, r.w, r.h, 0, 0, work.width, work.height);
+    return work.toDataURL('image/jpeg', 0.75).split(',')[1];
+  }
+
+  function sampleTick(){
+    if (!scanning) return;
+    var r = cropRect();
+    if (r){
+      var small = smallGray(r), now = Date.now();
+      stableCount = diff(small, prevSmall) < 12 ? stableCount + 1 : 0;
+      prevSmall = small;
+      if (!inflight && now >= backoffUntil){
+        if (state.reader === 'local'){
+          readLocal(r);
+        } else {
+          var interval = state.rate === 'paid' ? 1500 : 4200;
+          var changed = !lastSentSmall || diff(small, lastSentSmall) > 4 || now - lastCallAt > 9000;
+          if ((stableCount >= 2 && changed && now - lastCallAt >= interval) || now - lastCallAt >= interval * 2){ lastSentSmall = small; readGemini(r); }
+        }
+      }
+    }
+    sampleT = setTimeout(sampleTick, 300);
+  }
+
+  async function readGemini(r){
+    if (!state.key || !state.readModel){ plog('אין מפתח Gemini מאומת. חזור להגדרות.'); return; }
+    inflight = true; lastCallAt = Date.now();
+    try {
+      plog('שולח פריים לקריאה…');
+      var res = await gemRead(cropJpegB64(r, 768));
+      if (!scanning){ inflight = false; return; }
+      if (res){ inflight = false; fire(res.word, res.english); return; }
+      plog('לא זוהה פתק. ממשיך לסרוק…');
+    } catch(e){
+      if (e.status === 429){ backoffUntil = Date.now() + 15000; plog('הגעת למגבלת הבדיקות של החשבון. ממתין 15 שניות…'); }
+      else { backoffUntil = Date.now() + 3000; plog('שגיאה בקריאה: ' + (e.message || e)); }
+    }
+    inflight = false;
+  }
+
+  async function readLocal(r){
+    inflight = true;
+    try {
+      var w = await getTess();
+      var s = Math.min(2, 1000 / r.w);
+      work.width = Math.round(r.w * s); work.height = Math.round(r.h * s);
+      workCtx.drawImage(video, r.x, r.y, r.w, r.h, 0, 0, work.width, work.height);
+      var out = await w.recognize(work);
+      if (!scanning){ inflight = false; return; }
+      var words = ((out && out.data && out.data.words) || [])
+        .map(function(x){ return { t:String(x.text || '').replace(/[^A-Za-z]/g, '').toUpperCase(), c:x.confidence || 0 }; })
+        .filter(function(x){ return x.t.length >= 3 && x.c >= 70; })
+        .sort(function(a, b){ return b.t.length - a.t.length; });
+      var best = words[0] ? words[0].t : '';
+      plog('קורא: ' + ((out && out.data && out.data.text) || '').replace(/\s+/g, ' ').trim() + (best ? '\nמועמד: ' + best : ''));
+      if (best && best === localPrev){ inflight = false; fire(best, best.toLowerCase()); return; }
+      localPrev = best || null;
+    } catch(e){ plog('שגיאה במנוע המקומי: ' + (e.message || e)); await sleep(800); }
+    inflight = false;
+  }
+
+  function snapThumb(){
+    try {
+      var vw = video.videoWidth, vh = video.videoHeight;
+      if (!vw || !vh) return;
+      var c = document.createElement('canvas'), k = 140 / Math.min(vw, vh);
+      c.width = Math.round(vw * k); c.height = Math.round(vh * k);
+      c.getContext('2d').drawImage(video, 0, 0, c.width, c.height);
+      $('#exitCam').style.backgroundImage = 'url(' + c.toDataURL('image/jpeg', 0.7) + ')';
+    } catch(e){}
+  }
+  async function fire(word, english){
+    var my = session;
+    snapThumb();
+    stopRec(true);
+    timerEl.classList.add('read');
+    plog('נקרא: ' + word + (english && english !== word ? ' → ' + english : '') + '\nההקלטה נעצרה');
+    try { if (navigator.vibrate) navigator.vibrate(30); } catch(e){}
+    if (clearPromise){ try { await clearPromise; } catch(e){} }
+    var res = await makeAndSend(word, english, function(t){ if (my === session) plog('נקרא: ' + word + '\n' + t); });
+    if (my !== session) return;
+    timerEl.classList.remove('read');
+    if (res.ok){
+      timerEl.classList.add('hit');
+      plog('נקרא: ' + word + '\nנשלח ' + (res.via === 'ai' ? '(תמונת AI)' : '(צילום מוויקיפדיה)'));
+      try { if (navigator.vibrate) navigator.vibrate([40, 60, 40]); } catch(e){}
+    } else {
+      timerEl.classList.add('fail');
+      plog('נקרא: ' + word + '\nנכשל: ' + res.error);
+    }
+  }
+
+  recBtn.addEventListener('click', function(){ if (recording) stopRec(); else startRec(); });
+  $('#exitCam').addEventListener('click', closeCam);
+  $('#flipBtn').addEventListener('click', function(){ facing = facing === 'environment' ? 'user' : 'environment'; startStream(); });
+  $('#openCam').addEventListener('click', openCam);
+  document.addEventListener('visibilitychange', function(){
+    if (cam.hidden) return;
+    if (document.visibilityState === 'visible'){ keepAwake(); if (!stream || !stream.active) startStream(); }
+  });
+
+  async function netCheck(){
+    var out = $('#netResults'), btn = $('#netCheck');
+    out.textContent = ''; $('#netRow').hidden = false; btn.disabled = true;
+    function line(name, kind, note){ var li = document.createElement('li'); li.className = kind; li.textContent = (kind === 'ok' ? '✓ ' : kind === 'bad' ? '✗ ' : '– ') + name + (note ? ' · ' + note : ''); out.appendChild(li); }
+    var tests = [
+      ['שירות השליחה למסך התצוגה', function(){ return fetchT(NTFY + TOPIC + '/json?poll=1&since=latest', {}, 10000); }],
+      ['ויקיפדיה', function(){ return fetchT('https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&meta=siteinfo', {}, 10000); }],
+      ['Gemini', function(){ return state.key ? fetchT(GEM + '/models?pageSize=1&key=' + encodeURIComponent(state.key), {}, 10000) : null; }]
+    ];
+    for (var i = 0; i < tests.length; i++){
+      var name = tests[i][0];
+      try {
+        var p = tests[i][1]();
+        if (!p){ line(name, 'skip', 'אין מפתח'); continue; }
+        var r = await p;
+        if (r.ok) line(name, 'ok');
+        else line(name, 'bad', 'HTTP ' + r.status + (r.status === 400 || r.status === 403 ? ', בדוק את המפתח' : ''));
+      } catch(e){
+        await sleep(80);
+        line(name, 'bad', cspBlocked ? 'נחסם על ידי האתר שמארח את הדף' : 'אין חיבור');
+      }
+    }
+    btn.disabled = false;
+  }
+  $('#netCheck').addEventListener('click', netCheck);
+
+  /* ---------- Boot ---------- */
+  refreshUI();
+})();
+</script>
+</body>
+</html>

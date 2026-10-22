@@ -217,8 +217,7 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
   <div class="group">
     <div class="row col">
       <div class="seg" role="radiogroup" aria-label="סוג האינדיקציה">
-        <label class="seg-opt"><input type="radio" name="cue" value="sound" id="cue-sound"><span>צליל</span></label>
-        <label class="seg-opt"><input type="radio" name="cue" value="vibrate" id="cue-vibrate"><span>רטט</span></label>
+        <label class="seg-opt"><input type="radio" name="cue" value="notify" id="cue-notify"><span>התראה</span></label>
         <label class="seg-opt"><input type="radio" name="cue" value="silent" id="cue-silent"><span>שקט</span></label>
       </div>
     </div>
@@ -297,7 +296,7 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
       source: s.source === 'ai' ? 'ai' : 'wiki',
       style: ['photo','sketch','illus'].indexOf(s.style) >= 0 ? s.style : 'photo',
       practice: s.practice === true,
-      cue: ['sound','vibrate','silent'].indexOf(s.cue) >= 0 ? s.cue : 'silent',
+      cue: ['notify','vibrate','sound'].indexOf(s.cue) >= 0 ? 'notify' : 'silent',
       cueDelay: clampN(s.cueDelay, 0, 30, 0),
       think: (s.think && typeof s.think === 'object') ? s.think : {}
     };
@@ -353,31 +352,10 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
     return false;
   }
 
-  /* ---------- Cue: sound / vibration / silent ---------- */
+  /* ---------- Cue: an iPhone notification (or a vibration on Android), or nothing ---------- */
   var CUE_TOPIC = TOPIC + 'c';
   var canVibrate = typeof navigator.vibrate === 'function';
-  var actx = null, cueT = null;
-  function unlockAudio(){
-    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch(e){}
-    try {
-      if (!actx){ var AC = window.AudioContext || window.webkitAudioContext; if (AC) actx = new AC(); }
-      if (actx && actx.state !== 'running') actx.resume();
-      if (actx){ var b = actx.createBuffer(1, 1, 22050), src = actx.createBufferSource(); src.buffer = b; src.connect(actx.destination); src.start(0); }
-    } catch(e){}
-  }
-  function tone(freq, start, dur, vol){
-    var o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + start;
-    o.type = 'sine'; o.frequency.value = freq;
-    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + dur + 0.02);
-  }
-  function playSound(ok){
-    if (!actx) return false;
-    try { if (actx.state !== 'running') actx.resume(); } catch(e){}
-    if (ok){ tone(1046, 0, 0.12, 0.35); tone(1568, 0.11, 0.18, 0.3); }
-    else { tone(392, 0, 0.28, 0.35); tone(330, 0.26, 0.32, 0.3); }
-    return true;
-  }
+  var cueT = null;
   async function pushCue(){
     try {
       var r = await fetchT(NTFY + CUE_TOPIC + '?title=' + encodeURIComponent('✓') + '&priority=4', { method:'POST', body:'✓' }, 8000);
@@ -385,12 +363,9 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
     } catch(e){ return false; }
   }
   function doCue(){
-    if (state.cue === 'sound') return Promise.resolve(playSound(true));
-    if (state.cue === 'vibrate'){
-      if (canVibrate){ try { return Promise.resolve(navigator.vibrate([180, 90, 180])); } catch(e){ return Promise.resolve(false); } }
-      return pushCue();
-    }
-    return Promise.resolve(false);
+    if (state.cue !== 'notify') return Promise.resolve(false);
+    if (canVibrate){ try { return Promise.resolve(navigator.vibrate([180, 90, 180])); } catch(e){ return Promise.resolve(false); } }
+    return pushCue();
   }
   function scheduleCue(ok, my){
     clearTimeout(cueT);
@@ -617,19 +592,17 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
     document.querySelectorAll('input[name="cue"]').forEach(function(r){ r.checked = r.value === state.cue; });
     cueDelayIn.value = state.cueDelay;
     $('#cueDelayVal').textContent = state.cueDelay ? state.cueDelay + ' שניות אחרי' : 'מיד';
-    var needPush = state.cue === 'vibrate' && !canVibrate;
+    var needPush = state.cue === 'notify' && !canVibrate;
     $('#cueTopicRow').hidden = !needPush;
     $('#cueTopic').textContent = CUE_TOPIC;
-    $('#cueFoot').textContent = state.cue === 'sound'
-      ? 'צליל קצר ועדין. עם אוזניות אלחוטיות הוא נשמע רק לך. אם מתג השקט של האייפון דלוק, בדוק בתרגול שהצליל נשמע.'
-      : state.cue === 'vibrate'
-        ? (canVibrate
-            ? 'הטלפון רוטט פעמיים כשהתמונה נשלחה.'
-            : 'באייפון, דף אינטרנט לא יכול להפעיל רטט בעצמו, אז הרטט מגיע כהתראה של האפליקציה החינמית ntfy. ב־ntfy לחץ +, הדבק את שם הערוץ שלמעלה בדיוק כמו שהוא (רק את השם, בלי כתובת), השאר את השרת ntfy.sh ולחץ Subscribe. אשר התראות כשתישאל.')
-        : 'בלי צליל ובלי רטט. זו ברירת המחדל.';
+    $('#cueFoot').textContent = state.cue === 'notify'
+      ? (canVibrate
+          ? 'הטלפון רוטט פעמיים כשהתמונה נשלחה.'
+          : 'כשהתמונה נשלחה מגיעה התראה רגילה של האייפון, דרך האפליקציה החינמית ntfy. מתג השקט שבצד הטלפון קובע איך היא מורגשת: על שקט, רק רטט. על צלצול, צליל ורטט. כדי להתחבר: ב־ntfy לחץ +, הדבק את שם הערוץ שלמעלה בדיוק כמו שהוא (רק את השם, בלי כתובת), ולחץ Subscribe.')
+      : 'בלי שום אינדיקציה. זו ברירת המחדל.';
   }
   document.querySelectorAll('input[name="cue"]').forEach(function(r){
-    r.addEventListener('change', function(){ if (r.checked){ state.cue = r.value; save(); syncCueUI(); if (state.cue === 'sound') unlockAudio(); } });
+    r.addEventListener('change', function(){ if (r.checked){ state.cue = r.value; save(); syncCueUI(); } });
   });
   cueDelayIn.addEventListener('input', function(){ state.cueDelay = clampN(cueDelayIn.value, 0, 30, 0); save(); syncCueUI(); });
   $('#copyCueTopic').addEventListener('click', function(){
@@ -640,14 +613,13 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
   });
   var cueTestT = null;
   $('#cueTest').addEventListener('click', function(){
-    unlockAudio();
     var st = $('#cueTestState'); clearTimeout(cueTestT);
     if (state.cue === 'silent'){ st.textContent = 'מצב שקט'; return; }
     var left = state.cueDelay;
     function go(){
       st.textContent = 'שולח…';
       doCue().then(function(ok){
-        st.textContent = (state.cue === 'vibrate' && !canVibrate) ? (ok ? 'ההתראה נשלחה' : 'השליחה נכשלה, בדוק אינטרנט') : 'בוצע';
+        st.textContent = !canVibrate ? (ok ? 'ההתראה נשלחה' : 'השליחה נכשלה, בדוק אינטרנט') : 'בוצע';
         setTimeout(function(){ st.textContent = ''; }, 4000);
       });
     }
@@ -761,7 +733,7 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
     recBtn.classList.remove('on'); recBtn.setAttribute('aria-label', 'התחלת הקלטה'); modes.hidden = false;
   }
   function startRec(){
-    session++; clearTimeout(cueT); unlockAudio();
+    session++; clearTimeout(cueT);
     recording = true; scanning = true; inflight = false; gemN = 0;
     prevSmall = null; lastSentSmall = null; stableCount = 0; lastCallAt = 0; localPrev = null;
     recStart = Date.now(); tick(); clearInterval(tickT); tickT = setInterval(tick, 250);

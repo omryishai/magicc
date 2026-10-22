@@ -92,13 +92,18 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
 .checks .bad{ color:var(--danger); }
 .checks .skip{ color:var(--muted); }
 
+.row-head{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; }
+.cue-topic{ display:flex; align-items:center; gap:10px; }
+.cue-topic code{ flex:1; min-width:0; font:14px var(--font); direction:ltr; text-align:left; overflow-wrap:anywhere; user-select:all; -webkit-user-select:all; }
+
 /* Camera */
 #cam{ position:fixed; inset:0; z-index:100; background:var(--cam-bg); color:var(--cam-ink); overflow:hidden; touch-action:manipulation; -webkit-user-select:none; user-select:none; }
 #video{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; background:var(--cam-bg); }
 #video.mirror{ transform:scaleX(-1); }
 .cam-msg{ position:absolute; left:24px; right:24px; top:40%; text-align:center; font-size:15px; line-height:1.5; color:var(--cam-ink); }
 .scan-frame{ position:absolute; left:7%; right:7%; top:25%; bottom:25%; border:2px dashed var(--cam-yellow); border-radius:14px; pointer-events:none; }
-.cam-top{ position:absolute; left:0; right:0; top:0; padding-top:calc(env(safe-area-inset-top,0px) + 12px); display:flex; justify-content:center; pointer-events:none; }
+.cam-top{ position:absolute; left:0; right:0; top:0; padding:calc(env(safe-area-inset-top,0px) + 8px) max(14px, env(safe-area-inset-right,0px)) 0 max(14px, env(safe-area-inset-left,0px)); display:grid; grid-template-columns:1fr auto 1fr; align-items:center; direction:ltr; pointer-events:none; }
+.cam-top .timer{ grid-column:2; }
 .timer{ display:flex; align-items:center; gap:6px; padding:3px 9px; border-radius:6px; font:500 17px/1.2 var(--font); font-variant-numeric:tabular-nums; direction:ltr; color:var(--cam-ink); background:transparent; transition:background-color .2s ease; }
 .timer.rec{ background:var(--cam-red); }
 .timer.fail .cue{ display:block; border:0; background:var(--cam-yellow); }
@@ -208,6 +213,26 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
   </div>
   <p class="group-foot">בודק שהדף מצליח להגיע לשירות השליחה, לוויקיפדיה ול־Gemini. אם משהו מסומן באדום, הסריקה או השליחה לא יעבדו.</p>
 
+  <p class="group-title">אינדיקציה כשהתמונה נשלחה</p>
+  <div class="group">
+    <div class="row col">
+      <div class="seg" role="radiogroup" aria-label="סוג האינדיקציה">
+        <label class="seg-opt"><input type="radio" name="cue" value="sound" id="cue-sound"><span>צליל</span></label>
+        <label class="seg-opt"><input type="radio" name="cue" value="vibrate" id="cue-vibrate"><span>רטט</span></label>
+        <label class="seg-opt"><input type="radio" name="cue" value="silent" id="cue-silent"><span>שקט</span></label>
+      </div>
+    </div>
+    <div class="row col">
+      <div class="row-head"><label for="cueDelay">מתי</label><span class="val" id="cueDelayVal">מיד</span></div>
+      <input type="range" id="cueDelay" min="0" max="30" step="1" value="0">
+    </div>
+    <div class="row col" id="cueTopicRow" hidden>
+      <div class="cue-topic"><code id="cueTopic"></code><button type="button" class="text-btn" id="copyCueTopic">העתק</button></div>
+    </div>
+    <div class="row"><button type="button" class="text-btn" id="cueTest">נסה את האינדיקציה</button><span class="val" id="cueTestState"></span></div>
+  </div>
+  <p class="group-foot" id="cueFoot"></p>
+
   <p class="group-title">תרגול</p>
   <div class="group">
     <label class="row" for="practice"><span>מצב תרגול</span><input type="checkbox" class="ios-switch" id="practice"></label>
@@ -256,6 +281,7 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
 
   /* ---------- State ---------- */
   var storageOK = true;
+  function clampN(n, a, b, d){ n = Number(n); return isFinite(n) ? Math.min(b, Math.max(a, Math.round(n))) : d; }
   function load(){
     var s = null;
     try { var raw = localStorage.getItem(KEY); if (raw) s = JSON.parse(raw); } catch(e){ storageOK = false; }
@@ -271,6 +297,8 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
       source: s.source === 'ai' ? 'ai' : 'wiki',
       style: ['photo','sketch','illus'].indexOf(s.style) >= 0 ? s.style : 'photo',
       practice: s.practice === true,
+      cue: ['sound','vibrate','silent'].indexOf(s.cue) >= 0 ? s.cue : 'silent',
+      cueDelay: clampN(s.cueDelay, 0, 30, 0),
       think: (s.think && typeof s.think === 'object') ? s.think : {}
     };
   }
@@ -323,6 +351,54 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
       await sleep(400);
     }
     return false;
+  }
+
+  /* ---------- Cue: sound / vibration / silent ---------- */
+  var CUE_TOPIC = TOPIC + 'c';
+  var canVibrate = typeof navigator.vibrate === 'function';
+  var actx = null, cueT = null;
+  function unlockAudio(){
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch(e){}
+    try {
+      if (!actx){ var AC = window.AudioContext || window.webkitAudioContext; if (AC) actx = new AC(); }
+      if (actx && actx.state !== 'running') actx.resume();
+      if (actx){ var b = actx.createBuffer(1, 1, 22050), src = actx.createBufferSource(); src.buffer = b; src.connect(actx.destination); src.start(0); }
+    } catch(e){}
+  }
+  function tone(freq, start, dur, vol){
+    var o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + start;
+    o.type = 'sine'; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + dur + 0.02);
+  }
+  function playSound(ok){
+    if (!actx) return false;
+    try { if (actx.state !== 'running') actx.resume(); } catch(e){}
+    if (ok){ tone(1046, 0, 0.12, 0.35); tone(1568, 0.11, 0.18, 0.3); }
+    else { tone(392, 0, 0.28, 0.35); tone(330, 0.26, 0.32, 0.3); }
+    return true;
+  }
+  async function pushCue(ok){
+    try {
+      var r = await fetchT(NTFY + CUE_TOPIC, { method:'POST', body: ok ? '✓' : '✗', headers:{ 'Title':'✓', 'Priority': ok ? '4' : '5' } }, 8000);
+      return r.ok;
+    } catch(e){ return false; }
+  }
+  function doCue(ok, mode){
+    mode = mode || state.cue;
+    if (mode === 'sound') return playSound(ok);
+    if (mode === 'vibrate'){
+      if (canVibrate){ try { return navigator.vibrate(ok ? [180, 90, 180] : [600]); } catch(e){ return false; } }
+      pushCue(ok); return true;
+    }
+    return false;
+  }
+  function scheduleCue(ok, my){
+    clearTimeout(cueT);
+    if (state.cue === 'silent') return;
+    var ms = state.cueDelay * 1000;
+    if (state.practice) plog(practiceText.textContent + '\nאינדיקציה ' + (ms ? 'בעוד ' + state.cueDelay + ' שניות' : 'עכשיו'));
+    cueT = setTimeout(function(){ if (my === session) doCue(ok); }, ms);
   }
 
   /* ---------- Gemini ---------- */
@@ -537,6 +613,44 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
     }
     btn.disabled = false;
   });
+  var cueDelayIn = $('#cueDelay');
+  function syncCueUI(){
+    document.querySelectorAll('input[name="cue"]').forEach(function(r){ r.checked = r.value === state.cue; });
+    cueDelayIn.value = state.cueDelay;
+    $('#cueDelayVal').textContent = state.cueDelay ? state.cueDelay + ' שניות אחרי' : 'מיד';
+    var needPush = state.cue === 'vibrate' && !canVibrate;
+    $('#cueTopicRow').hidden = !needPush;
+    $('#cueTopic').textContent = CUE_TOPIC;
+    $('#cueFoot').textContent = state.cue === 'sound'
+      ? 'צליל קצר ועדין. עם אוזניות אלחוטיות הוא נשמע רק לך. אם מתג השקט של האייפון דלוק, בדוק בתרגול שהצליל נשמע.'
+      : state.cue === 'vibrate'
+        ? (canVibrate
+            ? 'הטלפון רוטט פעמיים כשהתמונה נשלחה, ורטט ארוך אחד אם משהו נכשל.'
+            : 'באייפון, דף אינטרנט לא יכול להפעיל רטט בעצמו. הרטט מגיע כהתראה: התקן מה־App Store את האפליקציה החינמית ntfy, לחץ +, והדבק את שם הערוץ שלמעלה. ההתראה מופיעה לרגע כפס קטן עם ✓, ואם יש לך Apple Watch הוא יקיש על היד.')
+        : 'בלי צליל ובלי רטט. הסימן היחיד הוא הנקודה ליד הטיימר.';
+  }
+  document.querySelectorAll('input[name="cue"]').forEach(function(r){
+    r.addEventListener('change', function(){ if (r.checked){ state.cue = r.value; save(); syncCueUI(); if (state.cue === 'sound') unlockAudio(); } });
+  });
+  cueDelayIn.addEventListener('input', function(){ state.cueDelay = clampN(cueDelayIn.value, 0, 30, 0); save(); syncCueUI(); });
+  $('#copyCueTopic').addEventListener('click', function(){
+    var btn = $('#copyCueTopic');
+    function done(){ btn.textContent = 'הועתק'; setTimeout(function(){ btn.textContent = 'העתק'; }, 1800); }
+    function fallback(){ var rg = document.createRange(); rg.selectNodeContents($('#cueTopic')); var sl = getSelection(); sl.removeAllRanges(); sl.addRange(rg); }
+    try { navigator.clipboard.writeText(CUE_TOPIC).then(done, fallback); } catch(e){ fallback(); }
+  });
+  var cueTestT = null;
+  $('#cueTest').addEventListener('click', function(){
+    unlockAudio();
+    var st = $('#cueTestState'); clearTimeout(cueTestT);
+    if (state.cue === 'silent'){ st.textContent = 'מצב שקט'; return; }
+    var left = state.cueDelay;
+    function go(){ doCue(true); st.textContent = 'בוצע'; setTimeout(function(){ st.textContent = ''; }, 2000); }
+    if (!left){ go(); return; }
+    (function count(){ st.textContent = 'בעוד ' + left + '…'; if (left-- <= 0){ go(); return; } cueTestT = setTimeout(count, 1000); })();
+  });
+  syncCueUI();
+
   var practiceIn = $('#practice'); practiceIn.checked = state.practice;
   practiceIn.addEventListener('change', function(){ state.practice = practiceIn.checked; save(); });
 
@@ -642,7 +756,7 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
     recBtn.classList.remove('on'); recBtn.setAttribute('aria-label', 'התחלת הקלטה'); modes.hidden = false;
   }
   function startRec(){
-    session++;
+    session++; clearTimeout(cueT); unlockAudio();
     recording = true; scanning = true; inflight = false; gemN = 0;
     prevSmall = null; lastSentSmall = null; stableCount = 0; lastCallAt = 0; localPrev = null;
     recStart = Date.now(); tick(); clearInterval(tickT); tickT = setInterval(tick, 250);
@@ -765,7 +879,6 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
     stopRec(true);
     timerEl.classList.add('read');
     plog('נקרא: ' + word + (english && english !== word ? ' → ' + english : '') + '\nההקלטה נעצרה');
-    try { if (navigator.vibrate) navigator.vibrate(30); } catch(e){}
     if (clearPromise){ try { await clearPromise; } catch(e){} }
     var res = await makeAndSend(word, english, function(t){ if (my === session) plog('נקרא: ' + word + '\n' + t); });
     if (my !== session) return;
@@ -773,10 +886,11 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
     if (res.ok){
       timerEl.classList.add('hit');
       plog('נקרא: ' + word + '\nנשלח ' + (res.via === 'ai' ? '(תמונת AI)' : '(צילום מוויקיפדיה)') + (res.aiNote ? '\nתמונת AI לא נוצרה: ' + res.aiNote : ''));
-      try { if (navigator.vibrate) navigator.vibrate([40, 60, 40]); } catch(e){}
+      scheduleCue(true, my);
     } else {
       timerEl.classList.add('fail');
       plog('נקרא: ' + word + '\nנכשל: ' + res.error);
+      scheduleCue(false, my);
     }
   }
 

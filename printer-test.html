@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f2f2f7">
+<meta name="format-detection" content="telephone=no">
+<title>בודק מדפסת</title>
+<style>
+/* Layout: one iOS-style grouped list. Status first, then the connect button, the results, the optional test print and the copyable report. Light only, to match the other apps. */
+:root{
+  --bg:#ffffff; --ink:#1c1c1e; --muted:#8a8a8e; --sep:#e3e3e8; --fill:#f2f2f7; --seg:#e6e6eb;
+  --tint:#007aff; --ok:#248a3d; --ok-soft:#e3f5e8; --bad:#d70015; --bad-soft:#fdecee; --warn:#b25000; --warn-soft:#fff3e0;
+  --shadow:rgba(0,0,0,.10);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Noto Sans Hebrew",Arial,sans-serif;
+  --mono:ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+html{ background:var(--fill); }
+body{
+  margin:0; background:var(--fill); color:var(--ink); font-family:var(--font); font-size:16px; line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left,0px)); padding-right:max(16px, env(safe-area-inset-right,0px));
+  -webkit-text-size-adjust:100%; -webkit-tap-highlight-color:transparent;
+}
+[hidden]{ display:none !important; }
+button{ font:inherit; }
+button:focus-visible{ outline:2px solid var(--tint); outline-offset:2px; }
+.app{ max-width:520px; margin:0 auto; padding-block:18px 40px; }
+h1{ margin:6px 4px 2px; font-size:30px; font-weight:700; letter-spacing:-.01em; }
+.lede{ margin:0 4px; color:var(--muted); font-size:15px; }
+.group-title{ margin:24px 16px 6px; font-size:13px; color:var(--muted); }
+.group{ background:var(--bg); border-radius:12px; overflow:hidden; }
+.group-foot{ margin:6px 16px 0; font-size:13px; color:var(--muted); line-height:1.5; }
+.row{ display:flex; align-items:center; justify-content:space-between; gap:14px; padding:12px 16px; min-height:22px; }
+.row + .row{ border-top:1px solid var(--sep); }
+.row .k{ min-width:0; }
+.row .v{ color:var(--muted); text-align:left; font-variant-numeric:tabular-nums; }
+.row .v.ok{ color:var(--ok); font-weight:600; }
+.row .v.bad{ color:var(--bad); font-weight:600; }
+.note{ margin:14px 0 0; padding:12px 14px; border-radius:12px; font-size:15px; line-height:1.5; }
+.note.ok{ background:var(--ok-soft); color:var(--ok); }
+.note.bad{ background:var(--bad-soft); color:var(--bad); }
+.note.warn{ background:var(--warn-soft); color:var(--warn); }
+.note b{ font-weight:700; }
+.primary{
+  display:block; width:100%; margin-top:14px; padding:15px; border:0; border-radius:14px; cursor:pointer;
+  background:var(--tint); color:#fff; font-size:17px; font-weight:600;
+}
+.primary:disabled{ background:var(--seg); color:var(--muted); cursor:default; }
+.secondary{
+  display:block; width:100%; padding:13px; border:0; background:var(--bg); color:var(--tint);
+  font-size:16px; cursor:pointer; text-align:center;
+}
+.secondary:disabled{ color:var(--muted); cursor:default; }
+.secondary + .secondary{ border-top:1px solid var(--sep); }
+.secondary.danger{ color:var(--bad); }
+.progress{ height:6px; border-radius:3px; background:var(--seg); overflow:hidden; margin:0 16px 12px; }
+.progress i{ display:block; height:100%; width:0; background:var(--tint); transition:width .15s linear; }
+.steps{ margin:0; padding:0 0 0 0; list-style:none; counter-reset:s; }
+.steps li{ counter-increment:s; display:flex; gap:12px; padding:11px 16px; font-size:15px; line-height:1.45; }
+.steps li + li{ border-top:1px solid var(--sep); }
+.steps li::before{ content:counter(s); flex:none; width:22px; height:22px; border-radius:50%; background:var(--fill); color:var(--muted); font-size:13px; font-weight:600; display:grid; place-items:center; margin-top:1px; }
+.log{ margin:0; padding:12px 16px; max-height:220px; overflow:auto; font:12px/1.5 var(--mono); direction:rtl; text-align:right; unicode-bidi:plaintext; white-space:pre-wrap; overflow-wrap:anywhere; color:var(--ink); }
+.sw-in{ appearance:none; -webkit-appearance:none; flex:none; margin:0; position:relative; width:51px; height:31px; border-radius:99px; background:var(--seg); cursor:pointer; transition:background-color .2s ease; }
+.sw-in::after{ content:""; position:absolute; top:2px; inset-inline-start:2px; width:27px; height:27px; border-radius:50%; background:#fff; box-shadow:0 2px 4px var(--shadow); transition:transform .2s ease; }
+.sw-in:checked{ background:#34c759; }
+.sw-in:checked::after{ transform:translateX(-20px); }
+.preview{ display:flex; gap:14px; align-items:center; padding:12px 16px; }
+.preview canvas{ width:66px; height:auto; border-radius:4px; box-shadow:0 0 0 1px var(--sep); flex:none; background:#fff; }
+.preview p{ margin:0; font-size:14px; color:var(--muted); }
+@media (prefers-reduced-motion: reduce){ *{ transition-duration:.01ms !important; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>בודק מדפסת</h1>
+  <p class="lede">בודק אם מדפסת Instax מתחברת מהדפדפן, בלי להשתמש בפילם.</p>
+
+  <p class="note bad" id="noBt" hidden>הדפדפן הזה לא יודע להתחבר לבלוטות׳. באייפון, פתח את הדף בדפדפן <b>Bluefy</b> (חינמי ב־App Store). באנדרואיד, פתח אותו ב־<b>Chrome</b>.</p>
+
+  <p class="group-title">לפני שמתחילים</p>
+  <div class="group">
+    <ol class="steps">
+      <li>הדלק את המדפסת. לבדיקת החיבור לא צריך פילם בפנים.</li>
+      <li>אם המדפסת מחוברת לאפליקציה של instax בטלפון אחר, סגור שם את האפליקציה או כבה את הבלוטות׳. המדפסת מתחברת רק לטלפון אחד בכל פעם.</li>
+      <li>לחץ "חיבור למדפסת" ובחר אותה מהרשימה. השם שלה מתחיל ב־INSTAX. אם מופיעים שני שמות כאלה, בחר את זה שבסופו כתוב IOS.</li>
+    </ol>
+  </div>
+
+  <button type="button" class="primary" id="connectBtn">חיבור למדפסת</button>
+
+  <p class="group-title">תוצאות</p>
+  <div class="group">
+    <div class="row"><span class="k">דפדפן תומך בבלוטות׳</span><span class="v" id="r-bt">—</span></div>
+    <div class="row"><span class="k">התחברות למדפסת</span><span class="v" id="r-conn">—</span></div>
+    <div class="row"><span class="k">שם המדפסת</span><span class="v" id="r-name" dir="ltr">—</span></div>
+    <div class="row"><span class="k">דגם מדויק</span><span class="v" id="r-exact" dir="ltr">—</span></div>
+    <div class="row"><span class="k">סוג פילם</span><span class="v" id="r-model">—</span></div>
+    <div class="row"><span class="k">סוללה</span><span class="v" id="r-batt">—</span></div>
+    <div class="row"><span class="k">תמונות שנשארו בפילם</span><span class="v" id="r-film">—</span></div>
+  </div>
+  <p class="note" id="verdict" hidden></p>
+
+  <p class="group-title">הדפסת ניסיון (משתמשת בדף פילם אחד)</p>
+  <div class="group">
+    <div class="preview"><canvas id="testCanvas" width="600" height="800" aria-label="תמונת הניסיון"></canvas><p>זו התמונה שתודפס. היא נשלחת בדיוק כמו שהאפליקציה תשלח תמונה בהופעה.</p></div>
+    <label class="row" for="flipIn"><span class="k">להדפיס הפוך</span><input type="checkbox" id="flipIn" class="sw-in"></label>
+    <div class="progress" id="progWrap" hidden><i id="prog"></i></div>
+    <button type="button" class="secondary" id="printBtn" disabled>הדפס תמונת ניסיון</button>
+    <button type="button" class="secondary danger" id="cancelBtn" hidden>עצור את השליחה</button>
+  </div>
+  <p class="group-foot" id="printFoot">הכפתור נפתח אחרי חיבור מוצלח, כשיש פילם במדפסת.</p>
+  <p class="group-foot">לפי דיווח של מפתחים, mini Link 3 מדפיס את התמונה הפוכה. אם השמש יצאה הפוכה, הפעל "להדפיס הפוך" לפני הדפסה הבאה.</p>
+
+  <p class="group-title">דוח מפורט</p>
+  <div class="group">
+    <pre class="log" id="log">עוד לא התחברת.</pre>
+    <button type="button" class="secondary" id="copyBtn">העתק את הדוח</button>
+  </div>
+  <p class="group-foot">אם משהו לא עובד, העתק את הדוח ושלח אותו.</p>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var $ = function(s){ return document.querySelector(s); };
+  var SERVICE = '70954782-2d83-473d-9e5f-81e1d02d5273';
+  var WRITE_CH = '70954783-2d83-473d-9e5f-81e1d02d5273';
+  var NOTIFY_CH = '70954784-2d83-473d-9e5f-81e1d02d5273';
+  var SUB = 182;
+  var DEVINFO = '0000180a-0000-1000-8000-00805f9b34fb';
+  var EXTRA = [DEVINFO, '00001800-0000-1000-8000-00805f9b34fb', '0000e0ff-3c17-d293-8e48-14fe2e4da212'];
+  var DI_CHARS = { '00002a24-0000-1000-8000-00805f9b34fb':'דגם', '00002a26-0000-1000-8000-00805f9b34fb':'קושחה', '00002a29-0000-1000-8000-00805f9b34fb':'יצרן' };
+  var MODELS = {
+    '600x800':  { name:'Instax mini', chunk:900 },
+    '800x800':  { name:'Instax Square', chunk:1808 },
+    '1260x840': { name:'Instax Wide', chunk:900 }
+  };
+  var EV = {
+    SUPPORT_FUNCTION_INFO:[0, 2], PRINT_START:[16, 0], PRINT_DATA:[16, 1], PRINT_END:[16, 2], PRINT_CANCEL:[16, 3], PRINT_IMAGE:[16, 128]
+  };
+  var INFO = { IMAGE:0, BATTERY:1, FUNCTION:2 };
+
+  /* ---------- log ---------- */
+  var logEl = $('#log'), lines = [];
+  function log(t){
+    var d = new Date(), ts = d.toTimeString().slice(0, 8);
+    lines.push(ts + '  ' + t);
+    if (lines.length > 400) lines.shift();
+    logEl.textContent = lines.join('\n');
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+  function iso(t){ return '\u2066' + t + '\u2069'; }
+  function hex(u8, max){ var a = []; for (var i = 0; i < Math.min(u8.length, max || 24); i++) a.push(('0' + u8[i].toString(16)).slice(-2)); return iso(a.join(' ') + (u8.length > (max || 24) ? ' …' : '')); }
+  function setV(id, text, kind){ var el = $(id); el.textContent = text; el.className = 'v' + (kind ? ' ' + kind : ''); }
+  function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+
+  /* ---------- packets (protocol from the open-source InstaxBLE project) ---------- */
+  function packet(ev, payload){
+    payload = payload || new Uint8Array(0);
+    var len = 7 + payload.length, p = new Uint8Array(len);
+    p[0] = 0x41; p[1] = 0x62; p[2] = (len >> 8) & 255; p[3] = len & 255; p[4] = ev[0]; p[5] = ev[1];
+    p.set(payload, 6);
+    var sum = 0; for (var i = 0; i < len - 1; i++) sum += p[i];
+    p[len - 1] = (255 - (sum & 255)) & 255;
+    return p;
+  }
+  function u32(n){ return new Uint8Array([(n >>> 24) & 255, (n >>> 16) & 255, (n >>> 8) & 255, n & 255]); }
+  function validResp(p){ if (p.length < 8) return false; var s = 0; for (var i = 0; i < p.length; i++) s += p[i]; return (s & 255) === 255; }
+  window.__instax = { packet:packet, validResp:validResp };
+
+  /* ---------- Bluetooth ---------- */
+  var device = null, writeCh = null, notifyCh = null, waiters = [], state = { model:null, w:0, h:0, batt:null, charging:false, film:null };
+  var busy = false, cancelled = false;
+
+  function onNotify(e){
+    var v = e.target.value, p = new Uint8Array(v.buffer, v.byteOffset, v.byteLength).slice();
+    if (!validResp(p)){ log('קיבלתי תשובה לא תקינה: ' + hex(p)); return; }
+    var w = waiters.shift();
+    if (w){ clearTimeout(w.t); w.res(p); }
+    else log('תשובה בלי בקשה: ' + hex(p));
+  }
+  function waitResp(ms){
+    return new Promise(function(res, rej){
+      var w = { res:res, t:setTimeout(function(){ var i = waiters.indexOf(w); if (i >= 0) waiters.splice(i, 1); rej(new Error('המדפסת לא ענתה')); }, ms) };
+      waiters.push(w);
+    });
+  }
+  async function writeRaw(p){
+    for (var i = 0; i < p.length; i += SUB){
+      var part = p.slice(i, i + SUB);
+      if (writeCh.writeValueWithoutResponse) await writeCh.writeValueWithoutResponse(part);
+      else await writeCh.writeValue(part);
+      if (p.length > SUB) await sleep(6);
+    }
+  }
+  async function send(ev, payload, ms){
+    var p = packet(ev, payload), wait = waitResp(ms || 4000);
+    await writeRaw(p);
+    return await wait;
+  }
+
+  function parseInfo(p){
+    var type = p[7];
+    if (type === INFO.IMAGE){
+      state.w = (p[8] << 8) | p[9]; state.h = (p[10] << 8) | p[11];
+      state.model = MODELS[state.w + 'x' + state.h] || null;
+      log('גודל תמונה שהמדפסת מבקשת: ' + iso(state.w + '×' + state.h));
+    } else if (type === INFO.BATTERY){
+      state.batt = p[9];
+      log('סוללה: ' + p[9] + '% (מצב ' + p[8] + ')');
+    } else if (type === INFO.FUNCTION){
+      state.film = p[8] & 15; state.charging = (p[8] & 128) !== 0;
+      log('תמונות שנשארו: ' + state.film + (state.charging ? ', בטעינה' : ''));
+    } else log('מידע לא מוכר מסוג ' + type + ': ' + hex(p));
+  }
+  async function readInfo(){
+    for (var k of [INFO.IMAGE, INFO.BATTERY, INFO.FUNCTION]){
+      var r = await send(EV.SUPPORT_FUNCTION_INFO, new Uint8Array([k]));
+      parseInfo(r);
+    }
+  }
+
+  function showResults(){
+    if (state.model) setV('#r-model', state.model.name + ' · ' + state.w + '×' + state.h, 'ok');
+    else if (state.w) setV('#r-model', 'לא מוכר · ' + state.w + '×' + state.h, 'bad');
+    else setV('#r-model', 'לא התקבל', 'bad');
+    setV('#r-batt', state.batt == null ? 'לא התקבל' : state.batt + '%' + (state.charging ? ' · בטעינה' : ''), state.batt == null ? '' : '');
+    setV('#r-film', state.film == null ? 'לא התקבל' : String(state.film), '');
+    var v = $('#verdict');
+    if (state.model){
+      v.className = 'note ok';
+      v.innerHTML = '<b>המדפסת מתאימה.</b> היא מתחברת מהדפדפן ומדברת בפרוטוקול שהאפליקציה יודעת לשלוח אליו. כדי להיות בטוחים במאה אחוז, אפשר להדפיס תמונת ניסיון.';
+    } else {
+      v.className = 'note warn';
+      v.innerHTML = '<b>החיבור הצליח, אבל המדפסת ענתה בצורה לא מוכרת.</b> ייתכן שזה דגם שהקוד הפתוח עוד לא תומך בו. העתק את הדוח ושלח אותו.';
+    }
+    v.hidden = false;
+    updatePrintBtn();
+  }
+  function updatePrintBtn(){
+    var ok = !!(writeCh && state.model && state.film > 0 && !busy);
+    $('#printBtn').disabled = !ok;
+    $('#printFoot').textContent = !writeCh ? 'הכפתור נפתח אחרי חיבור מוצלח, כשיש פילם במדפסת.'
+      : !state.model ? 'הדפסת ניסיון זמינה רק לדגם מוכר.'
+      : !(state.film > 0) ? 'אין פילם במדפסת. הכנס מחסנית פילם כדי להדפיס ניסיון.'
+      : 'ההדפסה משתמשת בדף פילם אחד. השליחה לוקחת כמה שניות.';
+  }
+
+  function onDisconnect(){
+    log('המדפסת התנתקה');
+    writeCh = null; notifyCh = null;
+    waiters.splice(0).forEach(function(w){ clearTimeout(w.t); w.res(new Uint8Array(0)); });
+    setV('#r-conn', 'התנתקה', 'bad');
+    $('#connectBtn').disabled = false; $('#connectBtn').textContent = 'חיבור מחדש';
+    updatePrintBtn();
+  }
+
+  async function readDeviceInfo(server){
+    try {
+      var di = await server.getPrimaryService(DEVINFO), dec = new TextDecoder(), found = {};
+      for (var u in DI_CHARS){
+        try { var c = await di.getCharacteristic(u), v = await c.readValue(); found[u] = dec.decode(v).replace(/\0+$/, '').trim(); log(DI_CHARS[u] + ': ' + iso(found[u])); } catch(e){}
+      }
+      var m = found['00002a24-0000-1000-8000-00805f9b34fb'];
+      if (m){ setV('#r-exact', m); state.exact = m; }
+      else setV('#r-exact', 'לא דווח');
+    } catch(e){ setV('#r-exact', 'לא דווח'); log('אין שירות מידע על המכשיר'); }
+  }
+  async function connect(){
+    var btn = $('#connectBtn'); btn.disabled = true; btn.textContent = 'מתחבר…';
+    lines = []; log('מתחיל בדיקה. דפדפן: ' + iso(navigator.userAgent));
+    state = { model:null, w:0, h:0, batt:null, charging:false, film:null };
+    ['#r-conn','#r-name','#r-exact','#r-model','#r-batt','#r-film'].forEach(function(id){ setV(id, '—'); });
+    $('#verdict').hidden = true;
+    try {
+      try {
+        device = await navigator.bluetooth.requestDevice({ filters:[{ namePrefix:'INSTAX' }], optionalServices:[SERVICE].concat(EXTRA) });
+      } catch(e){
+        if (e && e.name === 'NotFoundError' && /cancel/i.test(e.message || '')) throw e;
+        log('לא נמצאה מדפסת עם השם INSTAX, מציג את כל המכשירים (' + (e && e.message) + ')');
+        device = await navigator.bluetooth.requestDevice({ acceptAllDevices:true, optionalServices:[SERVICE].concat(EXTRA) });
+      }
+      setV('#r-name', device.name || 'ללא שם');
+      log('נבחר: ' + iso(device.name || 'ללא שם'));
+      device.addEventListener('gattserverdisconnected', onDisconnect);
+      var server = await device.gatt.connect();
+      log('חיבור בסיסי הצליח');
+      var service;
+      await readDeviceInfo(server);
+      try { service = await server.getPrimaryService(SERVICE); }
+      catch(e){
+        try { var all = await server.getPrimaryServices(); log('שירותים שנמצאו: ' + iso(all.map(function(x){ return x.uuid; }).join(', ') || 'אין')); } catch(err){ log('לא הצלחתי לקרוא את רשימת השירותים'); }
+        throw new Error('המכשיר הזה לא מדבר בפרוטוקול של Instax. ודא שבחרת את המדפסת, ואם יש שני שמות, את זה שבסופו כתוב IOS.'); }
+      writeCh = await service.getCharacteristic(WRITE_CH);
+      notifyCh = await service.getCharacteristic(NOTIFY_CH);
+      notifyCh.addEventListener('characteristicvaluechanged', onNotify);
+      await notifyCh.startNotifications();
+      setV('#r-conn', 'הצליחה', 'ok');
+      log('ערוץ התקשורת של Instax פתוח');
+      await readInfo();
+      showResults();
+      btn.textContent = 'מחובר';
+    } catch(e){
+      var msg = (e && e.message) || String(e);
+      log('שגיאה: ' + (e && e.name ? e.name + ': ' : '') + msg);
+      if (e && e.name === 'NotFoundError') setV('#r-conn', 'בוטל', '');
+      else setV('#r-conn', 'נכשלה', 'bad');
+      var v = $('#verdict');
+      if (!(e && e.name === 'NotFoundError')){
+        v.className = 'note bad';
+        v.innerHTML = '<b>החיבור לא הצליח.</b> ' + escapeHtml(msg) + ' נסה שוב אחרי כיבוי והדלקה של המדפסת. אם זה חוזר, העתק את הדוח ושלח אותו.';
+        v.hidden = false;
+      }
+      btn.disabled = false; btn.textContent = 'נסה שוב';
+      try { if (device && device.gatt.connected) device.gatt.disconnect(); } catch(err){}
+    }
+  }
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); }
+
+  /* ---------- test image ---------- */
+  var tc = $('#testCanvas');
+  function drawTest(w, h, flip){
+    tc.width = w; tc.height = h;
+    var c = tc.getContext('2d'), s = Math.min(w, h) / 600;
+    c.setTransform(1, 0, 0, 1, 0, 0);
+    if (flip){ c.translate(w, h); c.rotate(Math.PI); }
+    c.fillStyle = '#ffffff'; c.fillRect(0, 0, w, h);
+    c.save(); c.translate(w / 2, h * 0.42);
+    c.strokeStyle = '#1c1c1e'; c.lineWidth = 12 * s; c.lineCap = 'round'; c.lineJoin = 'round';
+    c.fillStyle = '#ffcc00';
+    c.beginPath(); c.arc(0, 0, 120 * s, 0, Math.PI * 2); c.fill(); c.stroke();
+    for (var k = 0; k < 12; k++){
+      var a = k * Math.PI / 6;
+      c.beginPath(); c.moveTo(Math.cos(a) * 165 * s, Math.sin(a) * 165 * s); c.lineTo(Math.cos(a) * 225 * s, Math.sin(a) * 225 * s); c.stroke();
+    }
+    c.fillStyle = '#1c1c1e';
+    c.beginPath(); c.arc(-40 * s, -25 * s, 13 * s, 0, Math.PI * 2); c.fill();
+    c.beginPath(); c.arc(40 * s, -25 * s, 13 * s, 0, Math.PI * 2); c.fill();
+    c.beginPath(); c.arc(0, 15 * s, 62 * s, 0.15 * Math.PI, 0.85 * Math.PI); c.stroke();
+    c.restore();
+    c.fillStyle = '#1c1c1e'; c.textAlign = 'center'; c.direction = 'rtl';
+    c.font = '700 ' + Math.round(56 * s) + 'px -apple-system, "Segoe UI", Arial, sans-serif';
+    c.fillText('הדפסת ניסיון', w / 2, h * 0.8);
+    c.fillStyle = '#8a8a8e'; c.font = Math.round(28 * s) + 'px -apple-system, "Segoe UI", Arial, sans-serif';
+    c.fillText(new Date().toLocaleDateString('he-IL'), w / 2, h * 0.8 + 50 * s);
+    c.setTransform(1, 0, 0, 1, 0, 0);
+  }
+  drawTest(600, 800);
+  function toJpegUnder(maxBytes){
+    return new Promise(function(resolve){
+      var lo = 0.3, hi = 0.95, best = null, tries = 0;
+      (function step(q){
+        tc.toBlob(function(b){
+          tries++;
+          if (b.size <= maxBytes){ best = b; lo = q; } else hi = q;
+          if (tries >= 7 || hi - lo < 0.03) resolve(best || b);
+          else step((lo + hi) / 2);
+        }, 'image/jpeg', q);
+      })(0.9);
+    });
+  }
+
+  /* ---------- printing ---------- */
+  async function printTest(){
+    if (!writeCh || !state.model) return;
+    busy = true; cancelled = false; updatePrintBtn();
+    $('#cancelBtn').hidden = false; $('#progWrap').hidden = false; $('#prog').style.width = '0%';
+    try {
+      drawTest(state.w, state.h, $('#flipIn').checked);
+      var blob = await toJpegUnder(55 * 1024);
+      var img = new Uint8Array(await blob.arrayBuffer());
+      log('תמונת ניסיון: ' + iso(state.w + '×' + state.h) + ', ' + iso(Math.round(img.length / 1024) + ' KB'));
+      var chunk = state.model.chunk, n = Math.ceil(img.length / chunk);
+      var r = await send(EV.PRINT_START, concat(new Uint8Array([2, 0, 0, 0]), u32(img.length)), 6000);
+      log('התחלת שליחה, תשובה: ' + hex(r, 10));
+      for (var i = 0; i < n; i++){
+        if (cancelled) throw new Error('השליחה בוטלה');
+        var part = new Uint8Array(chunk);
+        part.set(img.subarray(i * chunk, Math.min(img.length, (i + 1) * chunk)));
+        await send(EV.PRINT_DATA, concat(u32(i), part), 6000);
+        $('#prog').style.width = Math.round((i + 1) / n * 100) + '%';
+      }
+      r = await send(EV.PRINT_END, null, 6000);
+      log('סוף שליחה, תשובה: ' + hex(r, 10));
+      r = await send(EV.PRINT_IMAGE, null, 20000);
+      log('פקודת הדפסה, תשובה: ' + hex(r, 10) + (r[6] ? ' (קוד ' + r[6] + ')' : ''));
+      try { parseInfo(await send(EV.SUPPORT_FUNCTION_INFO, new Uint8Array([INFO.FUNCTION]), 6000)); } catch(e){}
+      showResults();
+      var v = $('#verdict'); v.className = 'note ok';
+      v.innerHTML = '<b>התמונה נשלחה למדפסת.</b> אם יצא דף פילם עם השמש, הכול עובד מקצה לקצה.';
+      v.hidden = false;
+    } catch(e){
+      log('שגיאה בהדפסה: ' + ((e && e.message) || e));
+      if (!cancelled){
+        var v2 = $('#verdict'); v2.className = 'note bad';
+        v2.innerHTML = '<b>השליחה למדפסת נכשלה.</b> ' + escapeHtml((e && e.message) || e) + '. העתק את הדוח ושלח אותו.';
+        v2.hidden = false;
+      }
+      try { if (writeCh) await writeRaw(packet(EV.PRINT_CANCEL)); } catch(err){}
+    }
+    busy = false; $('#cancelBtn').hidden = true; updatePrintBtn();
+  }
+  function concat(a, b){ var o = new Uint8Array(a.length + b.length); o.set(a, 0); o.set(b, a.length); return o; }
+
+  /* ---------- wiring ---------- */
+  var hasBt = !!(navigator.bluetooth && navigator.bluetooth.requestDevice);
+  setV('#r-bt', hasBt ? 'כן' : 'לא', hasBt ? 'ok' : 'bad');
+  if (!hasBt){ $('#noBt').hidden = false; $('#connectBtn').disabled = true; log('הדפדפן לא תומך בבלוטות׳: ' + iso(navigator.userAgent)); }
+  else if (!window.isSecureContext){ $('#noBt').hidden = false; $('#noBt').textContent = 'צריך לפתוח את הדף בכתובת שמתחילה ב־https.'; $('#connectBtn').disabled = true; }
+  $('#connectBtn').addEventListener('click', connect);
+  $('#printBtn').addEventListener('click', printTest);
+  $('#flipIn').addEventListener('change', function(){ drawTest(state.w || 600, state.h || 800, $('#flipIn').checked); });
+  $('#cancelBtn').addEventListener('click', function(){ cancelled = true; });
+  $('#copyBtn').addEventListener('click', function(){
+    var text = 'בודק מדפסת\n' + lines.join('\n'), btn = $('#copyBtn');
+    function done(){ btn.textContent = 'הועתק'; setTimeout(function(){ btn.textContent = 'העתק את הדוח'; }, 1800); }
+    function fallback(){ var r = document.createRange(); r.selectNodeContents(logEl); var s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+    try { navigator.clipboard.writeText(text).then(done, fallback); } catch(e){ fallback(); }
+  });
+})();
+</script>
+</body>
+</html>

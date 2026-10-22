@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="he">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#ffffff">
+<meta name="robots" content="noindex">
+<title>תמונה</title>
+<style>
+/* The whole page is one image on white. Nothing else, ever. */
+:root{ --bg:#ffffff; color-scheme:light; }
+html, body{ margin:0; height:100%; background:var(--bg); overflow:hidden; }
+#pic{
+  position:fixed; inset:0; width:100%; height:100%; object-fit:contain; display:block;
+  box-sizing:border-box;
+  padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);
+  opacity:0; transition:opacity .6s ease;
+}
+#pic.on{ opacity:1; }
+#msg{ position:fixed; left:24px; right:24px; top:45%; margin:0; text-align:center; font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; color:#8a8a8e; direction:rtl; }
+@media (prefers-reduced-motion: reduce){ #pic{ transition:none; } }
+</style>
+</head>
+<body>
+<img id="pic" alt="">
+<p id="msg" hidden></p>
+<script>
+(function(){
+  'use strict';
+  var TOPIC = 'ncxfo6agxwov0ymi9qh0acn9';
+  var BASE = 'https://ntfy.sh/' + TOPIC;
+  var pic = document.getElementById('pic');
+  var currentId = null, lastTime = 0;
+  document.addEventListener('securitypolicyviolation', function(){
+    var m = document.getElementById('msg');
+    m.textContent = 'הדף הזה לא יכול לקבל תמונות כי האתר שמארח אותו חוסם חיבורים חיצוניים. העלה אותו לאתר אחר, כמו GitHub Pages.';
+    m.hidden = false;
+  });
+
+  function apply(m){
+    if (!m || m.event !== 'message') return;
+    if (m.time && m.time < lastTime) return;
+    if (m.id && m.id === currentId) return;
+    currentId = m.id || null;
+    lastTime = m.time || lastTime;
+    if (m.attachment && m.attachment.url){
+      var now = Date.now() / 1000;
+      if (m.attachment.expires && m.attachment.expires < now){ hide(); return; }
+      var url = m.attachment.url;
+      var probe = new Image();
+      probe.onload = function(){
+        if (currentId !== (m.id || null)) return;
+        pic.classList.remove('on');
+        pic.src = url;
+        requestAnimationFrame(function(){ requestAnimationFrame(function(){ pic.classList.add('on'); }); });
+      };
+      probe.onerror = function(){ if (currentId === (m.id || null)) hide(); };
+      probe.src = url;
+    } else if (String(m.message || '').trim() === 'clear'){
+      hide();
+    }
+  }
+  function hide(){ pic.classList.remove('on'); setTimeout(function(){ if (!pic.classList.contains('on')) pic.removeAttribute('src'); }, 650); }
+
+  function pollLatest(){
+    return fetch(BASE + '/json?poll=1&since=latest', { cache:'no-store' })
+      .then(function(r){ return r.ok ? r.text() : ''; })
+      .then(function(t){
+        var lines = String(t || '').split('\n').filter(Boolean), last = null;
+        lines.forEach(function(l){ try { var j = JSON.parse(l); if (j.event === 'message') last = j; } catch(e){} });
+        if (last) apply(last);
+      })
+      .catch(function(){});
+  }
+
+  var es = null, pollT = null;
+  function connect(){
+    if (!window.EventSource){ startPolling(); return; }
+    try { if (es) es.close(); } catch(e){}
+    es = new EventSource(BASE + '/sse');
+    es.onopen = function(){ stopPolling(); pollLatest(); };
+    es.onmessage = function(e){ try { apply(JSON.parse(e.data)); } catch(err){} };
+    es.onerror = function(){ if (es && es.readyState === 2){ startPolling(); setTimeout(connect, 8000); } };
+  }
+  function startPolling(){ if (pollT) return; pollT = setInterval(pollLatest, 6000); }
+  function stopPolling(){ if (pollT){ clearInterval(pollT); pollT = null; } }
+
+  document.addEventListener('visibilitychange', function(){
+    if (document.visibilityState === 'visible'){ pollLatest(); if (!es || es.readyState === 2) connect(); }
+  });
+
+  pollLatest().then(connect);
+})();
+</script>
+</body>
+</html>

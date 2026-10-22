@@ -380,7 +380,7 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
   }
   async function pushCue(ok){
     try {
-      var r = await fetchT(NTFY + CUE_TOPIC, { method:'POST', body: ok ? '✓' : '✗', headers:{ 'Title':'✓', 'Priority': ok ? '4' : '5' } }, 8000);
+      var r = await fetchT(NTFY + CUE_TOPIC, { method:'POST', body: ok ? '✓' : '✗', headers:{ 'Title': ok ? '✓' : '✗', 'Priority': ok ? '4' : '5' } }, 8000);
       return r.ok;
     } catch(e){ return false; }
   }

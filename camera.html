@@ -378,27 +378,26 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
     else { tone(392, 0, 0.28, 0.35); tone(330, 0.26, 0.32, 0.3); }
     return true;
   }
-  async function pushCue(ok){
+  async function pushCue(){
     try {
-      var r = await fetchT(NTFY + CUE_TOPIC, { method:'POST', body: ok ? '✓' : '✗', headers:{ 'Title': ok ? '✓' : '✗', 'Priority': ok ? '4' : '5' } }, 8000);
+      var r = await fetchT(NTFY + CUE_TOPIC + '?title=' + encodeURIComponent('✓') + '&priority=4', { method:'POST', body:'✓' }, 8000);
       return r.ok;
     } catch(e){ return false; }
   }
-  function doCue(ok, mode){
-    mode = mode || state.cue;
-    if (mode === 'sound') return playSound(ok);
-    if (mode === 'vibrate'){
-      if (canVibrate){ try { return navigator.vibrate(ok ? [180, 90, 180] : [600]); } catch(e){ return false; } }
-      pushCue(ok); return true;
+  function doCue(){
+    if (state.cue === 'sound') return Promise.resolve(playSound(true));
+    if (state.cue === 'vibrate'){
+      if (canVibrate){ try { return Promise.resolve(navigator.vibrate([180, 90, 180])); } catch(e){ return Promise.resolve(false); } }
+      return pushCue();
     }
-    return false;
+    return Promise.resolve(false);
   }
   function scheduleCue(ok, my){
     clearTimeout(cueT);
     if (state.cue === 'silent') return;
     var ms = state.cueDelay * 1000;
     if (state.practice) plog(practiceText.textContent + '\nאינדיקציה ' + (ms ? 'בעוד ' + state.cueDelay + ' שניות' : 'עכשיו'));
-    cueT = setTimeout(function(){ if (my === session) doCue(ok); }, ms);
+    cueT = setTimeout(function(){ if (my === session) doCue(); }, ms);
   }
 
   /* ---------- Gemini ---------- */
@@ -625,9 +624,9 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
       ? 'צליל קצר ועדין. עם אוזניות אלחוטיות הוא נשמע רק לך. אם מתג השקט של האייפון דלוק, בדוק בתרגול שהצליל נשמע.'
       : state.cue === 'vibrate'
         ? (canVibrate
-            ? 'הטלפון רוטט פעמיים כשהתמונה נשלחה, ורטט ארוך אחד אם משהו נכשל.'
-            : 'באייפון, דף אינטרנט לא יכול להפעיל רטט בעצמו. הרטט מגיע כהתראה: התקן מה־App Store את האפליקציה החינמית ntfy, לחץ +, והדבק את שם הערוץ שלמעלה. ההתראה מופיעה לרגע כפס קטן עם ✓, ואם יש לך Apple Watch הוא יקיש על היד.')
-        : 'בלי צליל ובלי רטט. הסימן היחיד הוא הנקודה ליד הטיימר.';
+            ? 'הטלפון רוטט פעמיים כשהתמונה נשלחה.'
+            : 'באייפון, דף אינטרנט לא יכול להפעיל רטט בעצמו, אז הרטט מגיע כהתראה של האפליקציה החינמית ntfy. ב־ntfy לחץ +, הדבק את שם הערוץ שלמעלה בדיוק כמו שהוא (רק את השם, בלי כתובת), השאר את השרת ntfy.sh ולחץ Subscribe. אשר התראות כשתישאל.')
+        : 'בלי צליל ובלי רטט. זו ברירת המחדל.';
   }
   document.querySelectorAll('input[name="cue"]').forEach(function(r){
     r.addEventListener('change', function(){ if (r.checked){ state.cue = r.value; save(); syncCueUI(); if (state.cue === 'sound') unlockAudio(); } });
@@ -645,7 +644,13 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
     var st = $('#cueTestState'); clearTimeout(cueTestT);
     if (state.cue === 'silent'){ st.textContent = 'מצב שקט'; return; }
     var left = state.cueDelay;
-    function go(){ doCue(true); st.textContent = 'בוצע'; setTimeout(function(){ st.textContent = ''; }, 2000); }
+    function go(){
+      st.textContent = 'שולח…';
+      doCue().then(function(ok){
+        st.textContent = (state.cue === 'vibrate' && !canVibrate) ? (ok ? 'ההתראה נשלחה' : 'השליחה נכשלה, בדוק אינטרנט') : 'בוצע';
+        setTimeout(function(){ st.textContent = ''; }, 4000);
+      });
+    }
     if (!left){ go(); return; }
     (function count(){ st.textContent = 'בעוד ' + left + '…'; if (left-- <= 0){ go(); return; } cueTestT = setTimeout(count, 1000); })();
   });
@@ -890,7 +895,6 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
     } else {
       timerEl.classList.add('fail');
       plog('נקרא: ' + word + '\nנכשל: ' + res.error);
-      scheduleCue(false, my);
     }
   }
 

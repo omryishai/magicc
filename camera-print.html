@@ -172,9 +172,10 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
     <div class="row col" data-for="ai">
       <span class="lbl">סגנון</span>
       <div class="seg" role="radiogroup" aria-label="סגנון התמונה">
-        <label class="seg-opt"><input type="radio" name="style" value="photo" id="style-photo"><span>צילום</span></label>
+        <label class="seg-opt"><input type="radio" name="style" value="photo" id="style-photo"><span>צילום מהחיים</span></label>
+        <label class="seg-opt"><input type="radio" name="style" value="studio" id="style-studio"><span>רקע לבן</span></label>
         <label class="seg-opt"><input type="radio" name="style" value="sketch" id="style-sketch"><span>ציור בעט</span></label>
-        <label class="seg-opt"><input type="radio" name="style" value="illus" id="style-illus"><span>איור צבעוני</span></label>
+        <label class="seg-opt"><input type="radio" name="style" value="illus" id="style-illus"><span>איור</span></label>
       </div>
     </div>
     <div class="row" data-for="ai">
@@ -192,6 +193,7 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
       <span class="val" id="prState">לא מחוברת</span>
     </div>
     <label class="row" for="prAuto" data-pr><span>הדפס כשהתמונה מוכנה</span><input type="checkbox" class="ios-switch" id="prAuto"></label>
+    <label class="row" for="prRich" data-pr><span>ניגודיות מוגברת בהדפסה</span><input type="checkbox" class="ios-switch" id="prRich"></label>
     <label class="row" for="prFlip" data-pr><span>להדפיס הפוך</span><input type="checkbox" class="ios-switch" id="prFlip"></label>
     <div class="row" data-pr><button type="button" class="text-btn" id="prReprint" disabled>הדפס שוב את התמונה האחרונה</button><span class="val" id="prReprintState"></span></div>
   </div>
@@ -308,12 +310,13 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
       readModels: Array.isArray(s.readModels) ? s.readModels.filter(function(x){ return typeof x === 'string'; }) : [],
       imageModels: Array.isArray(s.imageModels) ? s.imageModels.filter(function(x){ return typeof x === 'string'; }) : [],
       source: s.source === 'ai' ? 'ai' : 'wiki',
-      style: ['photo','sketch','illus'].indexOf(s.style) >= 0 ? s.style : 'photo',
+      style: ['photo','studio','sketch','illus'].indexOf(s.style) >= 0 ? s.style : 'photo',
       practice: s.practice === true,
       cue: ['notify','vibrate','sound'].indexOf(s.cue) >= 0 ? 'notify' : 'silent',
       cueDelay: clampN(s.cueDelay, 0, 30, 0),
       printAuto: s.printAuto !== false,
       printFlip: s.printFlip === true,
+      printRich: s.printRich !== false,
       think: (s.think && typeof s.think === 'object') ? s.think : {}
     };
   }
@@ -461,14 +464,22 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
   }
 
   var STYLE_PROMPTS = {
-    photo: 'A high quality realistic photograph of {X}, centered in the frame, on a plain white background, soft natural light. No text, no letters, no watermark.',
+    photo: 'A candid, realistic everyday photograph of {X}, as if a person had just snapped it with their own camera: the subject in a real, natural setting where you would actually find it, real surroundings and background, natural light, true-to-life colors with good contrast, the subject clearly visible and filling much of the frame. A full-bleed photo with no border, no frame and no instant-film edges. No text, no letters, no watermark.',
+    studio:'A high quality realistic photograph of {X}, centered in the frame, on a plain white background, soft natural light. No text, no letters, no watermark.',
     sketch:'A simple hand drawn black ink pen sketch of {X} on plain white paper, centered, clean confident lines. No text, no letters.',
     illus: 'A friendly colorful flat illustration of {X}, centered on a plain white background. No text, no letters.'
   };
+  var noAspect = {};
   async function gemImage(term){
     var prompt = STYLE_PROMPTS[state.style].replace('{X}', term);
     var body = { contents:[{ parts:[{ text:prompt }] }], generationConfig:{ responseModalities:['TEXT','IMAGE'] } };
+    if (!noAspect[state.imageModel]) body.generationConfig.imageConfig = { aspectRatio:'3:4' };   // portrait, like the print
     var res = await gemCall(state.imageModel, body, 90000, false), r = res.r, j = res.j;
+    if (!r.ok && r.status === 400 && body.generationConfig.imageConfig && /aspect|image_?config/i.test(gemErr(j, r))){
+      noAspect[state.imageModel] = true;
+      delete body.generationConfig.imageConfig;
+      res = await gemCall(state.imageModel, body, 90000, false); r = res.r; j = res.j;
+    }
     if (!r.ok){ var ierr = new Error(gemErr(j, r)); ierr.status = r.status; throw ierr; }
     var part = partsOf(j).filter(function(p){ return p.inlineData || p.inline_data; })[0];
     if (!part) throw new Error('המודל לא החזיר תמונה');
@@ -663,6 +674,18 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
     }
     return await loadImg(src);
   }
+  // Instax film prints light and soft. Deeper colors and a bit more contrast, for the print only (the site gets the original).
+  function richen(ctx, W, H){
+    var d = ctx.getImageData(0, 0, W, H), a = d.data, C = 1.15, S = 1.15, B = -8;
+    for (var i = 0; i < a.length; i += 4){
+      var r = a[i], g = a[i + 1], b = a[i + 2], l = 0.299 * r + 0.587 * g + 0.114 * b;
+      r = (l + (r - l) * S - 128) * C + 128 + B;
+      g = (l + (g - l) * S - 128) * C + 128 + B;
+      b = (l + (b - l) * S - 128) * C + 128 + B;
+      a[i] = r < 0 ? 0 : r > 255 ? 255 : r; a[i + 1] = g < 0 ? 0 : g > 255 ? 255 : g; a[i + 2] = b < 0 ? 0 : b > 255 ? 255 : b;
+    }
+    ctx.putImageData(d, 0, 0);
+  }
   function canvasJpeg(c, q){ return new Promise(function(res){ c.toBlob(function(b){ res(b); }, 'image/jpeg', q); }); }
   async function printableJpeg(src){
     var img = await fetchImage(src);
@@ -673,6 +696,7 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
     if (state.printFlip){ ctx.translate(W, H); ctx.rotate(Math.PI); }
     var iw = img.naturalWidth, ih = img.naturalHeight, k = Math.max(W / iw, H / ih), dw = iw * k, dh = ih * k;
     ctx.drawImage(img, (W - dw) / 2, (H - dh) / 2, dw, dh);
+    if (state.printRich) richen(ctx, W, H);
     var lo = 0.3, hi = 0.95, q = 0.9, best = null, last = null;
     for (var t = 0; t < 7; t++){
       last = await canvasJpeg(c, q);
@@ -730,6 +754,7 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
     $('#prReprint').disabled = !pr.lastSrc || pr.busy;
     $('#prAuto').checked = state.printAuto;
     $('#prFlip').checked = state.printFlip;
+    $('#prRich').checked = state.printRich;
     $('#prFoot').textContent = !hasBt
       ? 'Bluefy הוא דפדפן חינמי מה־App Store. פותחים בו את הכתובת של הדף הזה, ומזינים שם שוב את מפתח Gemini (כל דפדפן שומר הגדרות נפרדות).'
       : state.printAuto
@@ -740,6 +765,7 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
     $('#prConnect').addEventListener('click', prConnect);
     $('#prAuto').addEventListener('change', function(){ state.printAuto = $('#prAuto').checked; save(); prUI(); });
     $('#prFlip').addEventListener('change', function(){ state.printFlip = $('#prFlip').checked; save(); prUI(); });
+    $('#prRich').addEventListener('change', function(){ state.printRich = $('#prRich').checked; save(); prUI(); });
     $('#prReprint').addEventListener('click', async function(){
       if (!pr.lastSrc) return;
       var st = $('#prReprintState');
@@ -770,7 +796,8 @@ select.field{ appearance:none; -webkit-appearance:none; color:var(--tint); curso
       ? 'Gemini קורא כל מילה, גם בכתב יד ובעברית. צריך מפתח חינמי מ־Google AI Studio. המפתח נשמר רק בטלפון הזה. בחשבון חינמי Google עשויה להשתמש בתמונות לשיפור המוצרים שלה.'
       : 'המנוע המקומי עובד בלי מפתח ובלי חשבון, אבל קורא טוב רק אותיות דפוס גדולות באנגלית, ובלי תיקון שגיאות.';
     $('#sourceFoot').textContent = state.source === 'ai'
-      ? 'תמונת AI נוצרת במיוחד לכל מילה, ולוקחת בערך 5 עד 15 שניות. צריך חיוב פעיל בחשבון Google, ועולה כמה סנטים לתמונה. אם היצירה נכשלת, נשלח צילום מוויקיפדיה במקום.'
+      ? ({ photo:'צילום מהחיים: נראה כמו תמונה שמישהו צילם במקום אמיתי, למשל כלב בפארק. ', studio:'רקע לבן: החפץ לבד על רקע לבן, כמו תמונת קטלוג. ', sketch:'', illus:'' }[state.style] || '') +
+        'התמונה נוצרת לאורך, באותה צורה כמו דף ההדפסה. היצירה לוקחת בערך 5 עד 15 שניות ועולה כמה סנטים. אם היא נכשלת, נשלח צילום מוויקיפדיה במקום.'
       : 'צילום אמיתי מהערך בוויקיפדיה. חינמי ומהיר, בדרך כלל תוך שנייה או שתיים.';
     if (state.reader === 'local') setEngine('ready', 'קריאה מקומית, בלי מפתח');
     else if (!state.key) setEngine('warn', 'צריך להזין מפתח Gemini ולבדוק אותו');
